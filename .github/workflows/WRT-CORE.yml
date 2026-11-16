@@ -456,8 +456,10 @@ jobs:
           cd ./wrt/
 
           VARIANT_FILE="$GITHUB_WORKSPACE/Config/$WRT_VARIANT_CONFIG"
+          # Modem Pro 的早期种子会触发 feeds 自动补全默认机型。
+          # 最终请求只取仓库配置；保留早期扫描所需的宿主 Rust 环境变量。
           cat "$WRT_CONFIG_FILE" "$GITHUB_WORKSPACE/Config/GENERAL.txt" \
-            "$GITHUB_WORKSPACE/Config/H5000M-MTK-WIFI7.txt" >> .config
+            "$GITHUB_WORKSPACE/Config/H5000M-MTK-WIFI7.txt" > .config
           if [ "$WRT_VARIANT" = mt5700 ] || [ "$WRT_VARIANT" = mt5700m ]; then
             cat "$GITHUB_WORKSPACE/Config/MODEM-STANDALONE.txt" >> .config
           fi
@@ -745,8 +747,10 @@ jobs:
             find ./bin/targets/ -iregex ".*\(buildinfo\|json\|sha256sums\|packages\)$" -exec rm -rf {} +
 
             for FILE in $(find ./bin/targets/ -type f -iname "*$WRT_TARGET*") ; do
-              EXT=$(basename "$FILE" | cut -d '.' -f 2-)
-              NAME=$(basename "$FILE" | cut -d '.' -f 1 | grep -io "\($WRT_TARGET\).*")
+              # 25.12 等版本号含点；只按最后一个点拆分扩展名。
+              FIRMWARE_BASENAME=$(basename "$FILE")
+              EXT=${FIRMWARE_BASENAME##*.}
+              NAME=$(printf '%s' "${FIRMWARE_BASENAME%.*}" | grep -io "\($WRT_TARGET\).*")
 
               # 剥掉平台 / 设备 / squashfs 前缀，只留能区分镜像格式的短标识：
               #   mediatek-filogic-hiveton_h5000m-squashfs-sysupgrade -> sysupgrade

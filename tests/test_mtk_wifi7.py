@@ -9,6 +9,7 @@ import re
 import shutil
 import subprocess
 import tempfile
+import textwrap
 import unittest
 
 REPO = Path(__file__).resolve().parents[1]
@@ -110,6 +111,43 @@ exit 0
     def test_hnat_seed_preserves_disabled_engine(self):
         calls = self.run_hnat_seed("disabled")
         self.assertNotIn("-q set turboacc.config.fastpath=mediatek_hnat", calls)
+
+
+class ConfigMergeTests(unittest.TestCase):
+    def test_feed_generated_device_defaults_do_not_enter_requested_config(self):
+        workflow = (REPO / ".github/workflows/WRT-CORE.yml").read_text()
+        block = workflow.split("      - name: Custom Settings\n", 1)[1]
+        block = block.split("      - name: Verify Config", 1)[0]
+        script = textwrap.dedent(block.split("run: |\n", 1)[1])
+        with tempfile.TemporaryDirectory(prefix="h5000m-config-merge-") as temp:
+            work = Path(temp)
+            (work / "wrt").mkdir()
+            shutil.copytree(REPO / "Config", work / "Config")
+            (work / "Scripts").mkdir()
+            settings = work / "Scripts/Settings.sh"
+            settings.write_text("#!/bin/sh\nexit 0\n")
+            settings.chmod(0o755)
+            (work / "wrt/.config").write_text(
+                "CONFIG_PACKAGE_modem-pro=y\nCONFIG_MODEM_PRO_HOST_RUST=y\n"
+                "CONFIG_TARGET_mediatek_filogic_DEVICE_openwrt_one=y\n"
+                "CONFIG_DEFAULT_kmod-phy-airoha-en8811h=y\n"
+                "CONFIG_PACKAGE_u-boot-mt7981_openwrt_one-nor=y\n"
+            )
+            result = subprocess.run(
+                ["bash", "--noprofile", "--norc", "-eo", "pipefail", "-c",
+                 "make() { return 0; }\n" + script], cwd=work,
+                env={**os.environ, "GITHUB_WORKSPACE": str(work),
+                     "WRT_CONFIG_FILE": str(work / "Config/H5000M-modem-pro.txt"),
+                     "WRT_VARIANT": "modem-pro", "WRT_VARIANT_CONFIG": "MODEM-PRO.txt"},
+                capture_output=True, text=True,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            requested = (work / "wrt/.config.requested").read_text()
+            self.assertNotIn("openwrt_one", requested)
+            self.assertNotIn("CONFIG_DEFAULT_kmod-phy-airoha-en8811h", requested)
+            self.assertIn("CONFIG_TARGET_DEVICE_mediatek_filogic_DEVICE_hiveton_h5000m=y", requested)
+            self.assertIn("CONFIG_PACKAGE_modem-pro=y", requested)
+            self.assertIn("CONFIG_MODEM_PRO_HOST_RUST=y", requested)
 
 
 if __name__ == "__main__":
