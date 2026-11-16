@@ -1,0 +1,8 @@
+# MT5700：LianXia233/luci-app-mt5700，LuCI + Rust/Tokio 后端。
+# 与其他模组管理方案互斥；风扇使用 LianXia233 的 Rust 版本。
+CONFIG_PACKAGE_luci-app-mt5700=y
+CONFIG_PACKAGE_luci-i18n-mt5700-zh-cn=y
+# rpcd 的后端桥接使用 BusyBox nc 与 timeout。
+CONFIG_BUSYBOX_CUSTOM=y
+CONFIG_BUSYBOX_CONFIG_NC=y
+CONFIG_BUSYBOX_CONFIG_TIMEOUT=y

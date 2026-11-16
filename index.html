@@ -17,8 +17,8 @@
 
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>H5000M & AP3000M & x86 · ImmortalWrt 定制固件发布中心</title>
-  <meta name="description" content="基于 ImmortalWrt 主线源码，专为 Hiveton H5000M 5G CPE、AirPi AP3000M Wi-Fi 6 路由器与通用 x86_64 软路由量身打造的自动化云编译生态与固件发布落地页。">
+  <title>H5000M · ImmortalWrt 定制固件发布中心</title>
+  <meta name="description" content="基于 ImmortalWrt 主线源码，专为 Hiveton H5000M 5G CPE 打造的自动化云编译生态与固件发布落地页。">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%230284c7'><path d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'/></svg>">
   <style>
     :root {
@@ -807,104 +807,10 @@
       border-radius: 6px;
     }
 
-    /* Smooth animated expansion for extra assets */
-    .release-extra-assets {
-      max-height: 0;
-      opacity: 0;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease, margin 0.25s ease;
-      margin-top: 0;
-      border-top: none;
-    }
-    .release-extra-assets.open {
-      max-height: 800px;
-      opacity: 1;
-      margin-top: 10px;
-      padding-top: 10px;
-      border-top: 1px dashed rgba(226, 232, 240, 0.85);
-    }
-
-    /* X86 Optimized Dropdown Items */
-    .x86-asset-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 9px 12px;
-      background: rgba(255, 255, 255, 0.9);
-      border-radius: 8px;
-      border: 1px solid rgba(226, 232, 240, 0.85);
-      gap: 10px;
-      transition: var(--transition);
-    }
-    .x86-asset-item:hover {
-      background: rgba(255, 255, 255, 0.95);
-      border-color: #cbd5e1;
-    }
-    .x86-format-tag {
-      font-size: 0.72rem;
-      font-weight: 700;
-      padding: 3px 7px;
-      border-radius: 5px;
-      flex-shrink: 0;
-      text-transform: uppercase;
-    }
-    .tag-bios { background: #ffedd5; color: #c2410c; border: 1px solid #fed7aa; }
-    .tag-vmdk { background: #dbeafe; color: #1d4ed8; border: 1px solid #bfdbfe; }
-    .tag-iso { background: #f3e8ff; color: #7e22ce; border: 1px solid #e9d5ff; }
-    .tag-cfg { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
-
-    .x86-asset-meta {
-      display: flex;
-      flex-direction: column;
-      flex: 1;
-      min-width: 0;
-    }
-    .x86-asset-title {
-      font-size: 0.84rem;
-      font-weight: 700;
-      color: var(--text-main);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .x86-asset-sub {
-      font-size: 0.72rem;
-      color: var(--text-light);
-      font-family: 'JetBrains Mono', Consolas, monospace;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .toggle-extra-btn {
-      background: rgba(255, 255, 255, 0.88);
-      border: 1px solid rgba(226, 232, 240, 0.85);
-      border-radius: 8px;
-      color: var(--text-muted);
-      font-size: 0.82rem;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      padding: 8px;
-      transition: var(--transition);
-      margin-top: 4px;
-    }
-    .toggle-extra-btn:hover {
-      color: var(--primary);
-      background: #ffffff;
-      border-color: #cbd5e1;
-    }
-
     /* Hardware Matrix Section */
     .hw-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: minmax(0, 1fr);
       gap: 24px;
     }
     .hw-card {
@@ -933,8 +839,6 @@
       margin-bottom: 16px;
     }
     .hw-icon-h5000m { background: #fee2e2; color: #dc2626; }
-    .hw-icon-ap3000m { background: #dbeafe; color: #2563eb; }
-    .hw-icon-x86 { background: #f3e8ff; color: #7e22ce; }
 
     .hw-card-title {
       font-size: 1.25rem;
@@ -1425,10 +1329,9 @@
       border-color: rgba(2, 132, 199, 0.2);
     }
     @media (min-width: 768px) {
-      #deviceFilter.tab-pills,
       #variantFilter.tab-pills {
         display: grid;
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(3, 1fr);
         width: 100%;
       }
       #mirrorSelector.tab-pills {
@@ -1457,7 +1360,7 @@
     }
 
   /* ============================================================
-   Phase 3 移动端落地补丁 · C = qmodem.html (H5000M-CI-Qmodem, main:/)
+   Phase 3 移动端落地补丁 · C = qmodem.html (OpenWRT-CI-H5000M, main:/)
    注入位置：本文件最后一个 style 结束标签之前，新建【独立】块，
              【必须】排在现有 @media (max-width:767px) 块（1444-1448）之后，
              不要插进现有 @media (max-width:640px) 块（1373-1380）内部。
@@ -1859,7 +1762,7 @@
             </svg>
           </div>
           <div class="brand-title">
-            <span>H5000M-CI-Qmodem</span>
+            <span>OpenWRT-CI-H5000M</span>
             <span>ImmortalWrt 5G CPE & Route</span>
           </div>
         </a>
@@ -1890,7 +1793,7 @@
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
             192.168.10.1
           </button>
-          <a href="https://github.com/LianXia233/H5000M-CI-Qmodem" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm">
+          <a href="https://github.com/Starktomy/OpenWRT-CI-H5000M" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
             GitHub ⭐
           </a>
@@ -1911,7 +1814,7 @@
       <li><a href="#features" onclick="toggleMobileMenu()">❄️ CPE 专属功能</a></li>
       <li><a href="#defaults" onclick="toggleMobileMenu()">⚙️ 出厂网络与密码</a></li>
       <li><a href="#ci-guide" onclick="toggleMobileMenu()">🚀 GitHub Actions 云编译</a></li>
-      <li><a href="https://github.com/LianXia233/H5000M-CI-Qmodem" target="_blank">⭐ 前往 GitHub 仓库</a></li>
+      <li><a href="https://github.com/Starktomy/OpenWRT-CI-H5000M" target="_blank">⭐ 前往 GitHub 仓库</a></li>
     </ul>
   </div>
 
@@ -1922,14 +1825,14 @@
     <section class="hero">
       <div class="hero-badge-wrap">
         <span class="hero-badge-dot"></span>
-        <span class="hero-badge-text">ImmortalWrt Master 主线构建 · 专为 5G CPE & 软路由打造</span>
+        <span class="hero-badge-text">ImmortalWrt Master 主线构建 · 专为 H5000M 5G CPE 打造</span>
       </div>
       <h1 class="hero-title">
-        <span class="gradient-text"><span class="nowrap">H5000M</span> · <span class="nowrap">AP3000M</span> <span class="nowrap">· x86</span></span><br>
+        <span class="gradient-text"><span class="nowrap">H5000M</span></span><br>
         <span class="nowrap">全生态</span><span class="nowrap">自动化</span><span class="nowrap">定制固件</span>
       </h1>
       <p class="hero-subtitle">
-        基于最新开源 ImmortalWrt 主线源码，深度适配 Hiveton H5000M 5G CPE、AirPi AP3000M Wi-Fi 6 路由与 x86 通用软路由。全系支持 QModem Next 现代化响应式与 Classic 经典双前端，集成双路温控风扇、网络模式秒切与一键 OTA 在线直升。
+        基于最新开源 ImmortalWrt 主线源码，适配 Hiveton H5000M 5G CPE，提供 QModem Next、经典 QModem、Modem Pro、MT5700 与 MT5700M 五套独立方案，集成双路温控风扇、网络模式秒切与一键 OTA 在线直升。
       </p>
 
       <!-- Tags & Badges -->
@@ -1940,7 +1843,7 @@
         </span>
         <span class="pill-badge orange">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"></rect><rect x="9" y="9" width="6" height="6"></rect></svg>
-          MediaTek Filogic (MT7987A / MT7981B)
+          MediaTek Filogic (MT7987A)
         </span>
         <span class="pill-badge purple">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0 1 14.08 0"></path><line x1="12" y1="20" x2="12.01" y2="20"></line></svg>
@@ -1948,7 +1851,7 @@
         </span>
         <span class="pill-badge blue">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-          Wi-Fi 7 & 6 开源 mt76
+          Wi-Fi 7 开源 mt76
         </span>
       </div>
 
@@ -1964,23 +1867,23 @@
         </a>
         <a href="#hardware" class="btn btn-secondary">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
-          机型规格矩阵
+          H5000M 硬件规格
         </a>
       </div>
 
       <!-- Quick Metrics Grid -->
       <div class="hero-stats-grid">
         <div class="stat-card">
-          <div class="stat-card-num">3 大架构</div>
-          <div class="stat-card-label">H5000M / AP3000M / x86</div>
+          <div class="stat-card-num">H5000M</div>
+          <div class="stat-card-label">MT7987A · 5G CPE</div>
         </div>
         <div class="stat-card">
-          <div class="stat-card-num">双前端</div>
-          <div class="stat-card-label">Next 现代版 / LuCI 经典版</div>
+          <div class="stat-card-num">五套方案</div>
+          <div class="stat-card-label">Next / Classic / Pro / MT5700 / MT5700M</div>
         </div>
         <div class="stat-card">
           <div class="stat-card-num">160MHz</div>
-          <div class="stat-card-label">Wi-Fi 7 & 6 满血超宽频</div>
+          <div class="stat-card-label">Wi-Fi 7 满血超宽频</div>
         </div>
         <div class="stat-card">
           <div class="stat-card-num">无感 OTA</div>
@@ -1999,7 +1902,7 @@
               <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
               固件版本与产物下载中心
             </h2>
-            <p class="section-desc">支持实时切换下载加速源，自动区分各机型与 QModem 前端架构，包含 Sysupgrade 固件、内核配置与 U-Boot 引导</p>
+            <p class="section-desc">支持实时切换下载加速源，按 H5000M 模组方案与编译日期查找 Sysupgrade 固件</p>
           </div>
           <div class="section-actions">
             <button class="btn btn-secondary btn-sm" onclick="fetchLiveReleases()">
@@ -2029,22 +1932,8 @@
             </div>
           </div>
 
-          <!-- Device Filter & Search -->
+          <!-- Variant Filter & Search -->
           <div class="control-row">
-            <div class="control-group">
-              <span class="control-label">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
-                机型筛选:
-              </span>
-              <div class="tab-pills" id="deviceFilter">
-                <!-- 移动端横滑提示 -->
-                <button class="tab-pill active" onclick="filterDevice('all', this)">全部机型</button>
-                <button class="tab-pill" onclick="filterDevice('H5000M', this)">H5000M (5G CPE)</button>
-                <button class="tab-pill" onclick="filterDevice('AP3000M', this)">AP3000M (WiFi6 路由)</button>
-                <button class="tab-pill" onclick="filterDevice('X86', this)">x86 通用软路由</button>
-              </div>
-            </div>
-
             <!-- Frontend Variant Filter -->
             <div class="control-group">
               <span class="control-label">前端版本:</span>
@@ -2054,6 +1943,8 @@
                 <button class="tab-pill" onclick="filterVariant('next', this)">QModem Next (现代 JS)</button>
                 <button class="tab-pill" onclick="filterVariant('classic', this)">QModem (传统 LuCI)</button>
                 <button class="tab-pill" onclick="filterVariant('modem-pro', this)">Modem Pro 统一版</button>
+                <button class="tab-pill" onclick="filterVariant('mt5700', this)">MT5700 (Rust)</button>
+                <button class="tab-pill" onclick="filterVariant('mt5700m', this)">MT5700M (原生 C)</button>
               </div>
             </div>
 
@@ -2078,8 +1969,7 @@
           </h4>
           <ul style="font-size: 0.85rem; color: var(--text-muted); padding-left: 20px; line-height: 1.6;">
             <li><strong>已安装本固件用户</strong>：推荐直接使用后台 <code>系统 → 在线升级</code>，固件内置设备唯一锚点，会自动检索匹配对应 Release，保留配置安全直升。</li>
-            <li><strong>H5000M / AP3000M 原厂或其他系统刷入</strong>：请下载对应机型的 <code>*-sysupgrade.bin</code> 固件，通过 U-Boot Web 恢复页面或原系统升级入口刷入。</li>
-            <li><strong>x86 软路由安装</strong>：推荐使用 <code>squashfs-combined-efi.img.gz</code> 解压后直接用 BalenaEtcher 或 PE 写入系统盘，亦提供针对虚拟机的 <code>.vmdk</code> 与 <code>.iso</code> 安装镜像。</li>
+            <li><strong>H5000M 原厂或其他系统刷入</strong>：请下载对应机型的 <code>*-sysupgrade.bin</code> 固件，通过 U-Boot Web 恢复页面或原系统升级入口刷入。</li>
           </ul>
         </div>
       </div>
@@ -2093,9 +1983,9 @@
             <span class="section-subtitle-tag">Hardware Ecosystem</span>
             <h2 class="section-title">
               <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>
-              硬件支持与平台架构矩阵
+              H5000M 硬件规格
             </h2>
-            <p class="section-desc">QModem 配置基于 ImmortalWrt 官方主线 Master 分支编译；H5000M / AP3000M 的 Modem Pro 统一版则基于 VIKINGYFY/immortalwrt 的 owrt 分支</p>
+            <p class="section-desc">QModem 配置基于 ImmortalWrt 官方主线 Master 分支编译；Modem Pro、MT5700 和 MT5700M 基于 VIKINGYFY/immortalwrt 的 owrt 分支</p>
           </div>
         </div>
 
@@ -2136,81 +2026,6 @@
             </div>
           </div>
 
-          <!-- Card 2: AP3000M -->
-          <div class="hw-card">
-            <div class="hw-card-icon hw-icon-ap3000m">
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 20h20"></path><path d="M5 20v-4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v4"></path><path d="M12 14V4"></path><path d="M10 7l2-3 2 3"></path></svg>
-            </div>
-            <h3 class="hw-card-title">AirPi AP3000M</h3>
-            <p class="hw-card-subtitle">高性价比 Wi-Fi 6 路由器</p>
-
-            <ul class="hw-spec-list">
-              <li class="hw-spec-item">
-                <span class="hw-spec-label">主控 SoC</span>
-                <span class="hw-spec-val">MediaTek Filogic 820 (MT7981B)</span>
-              </li>
-              <li class="hw-spec-item">
-                <span class="hw-spec-label">无线驱动栈</span>
-                <span class="hw-spec-val">官方开源 mt76 驱动</span>
-              </li>
-              <li class="hw-spec-item">
-                <span class="hw-spec-label">Wi-Fi 规格</span>
-                <span class="hw-spec-val">Wi-Fi 6 (802.11ax · 160MHz)</span>
-              </li>
-              <li class="hw-spec-item">
-                <span class="hw-spec-label">校准恢复</span>
-                <span class="hw-spec-val">自动写 factory 分区 + MAC 绑定</span>
-              </li>
-              <li class="hw-spec-item">
-                <span class="hw-spec-label">源码来源</span>
-                <span class="hw-spec-val">ImmortalWrt Master 主线<br>Modem Pro：VIKINGYFY owrt</span>
-              </li>
-              <li class="hw-spec-item">
-                <span class="hw-spec-label">网口顺序</span>
-                <span class="hw-spec-val">Modem Pro 与主线固件 LAN/WAN 相反<br>两套固件互刷后需调换网线</span>
-              </li>
-            </ul>
-
-            <div class="hw-special-tag">
-              🛠️ <strong>独家免驱修复</strong>：针对原厂 factory 分区丢失导致无 Wi-Fi 的痛点，内置 <code>99-ap3000m-eeprom</code> 开机自启服务，自动提取真实物理 MAC 写入校准模板，开箱即用。
-            </div>
-          </div>
-
-          <!-- Card 3: X86 -->
-          <div class="hw-card">
-            <div class="hw-card-icon hw-icon-x86">
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
-            </div>
-            <h3 class="hw-card-title">x86_64 通用架构</h3>
-            <p class="hw-card-subtitle">工控机 / 软路由 / 物理 PC / 虚拟机</p>
-
-            <ul class="hw-spec-list">
-              <li class="hw-spec-item">
-                <span class="hw-spec-label">架构平台</span>
-                <span class="hw-spec-val">x86_64 64位通用架构</span>
-              </li>
-              <li class="hw-spec-item">
-                <span class="hw-spec-label">适用形态</span>
-                <span class="hw-spec-val">J4125 / N5105 / N100 / 多网口PC</span>
-              </li>
-              <li class="hw-spec-item">
-                <span class="hw-spec-label">虚拟化支持</span>
-                <span class="hw-spec-val">PVE / ESXi / VMware / Hyper-V</span>
-              </li>
-              <li class="hw-spec-item">
-                <span class="hw-spec-label">存储扩展</span>
-                <span class="hw-spec-val">NVMe + BTRFS + Samba4 私有 NAS</span>
-              </li>
-              <li class="hw-spec-item">
-                <span class="hw-spec-label">加速支持</span>
-                <span class="hw-spec-val">kmod-cryptodev 硬件加解密</span>
-              </li>
-            </ul>
-
-            <div class="hw-special-tag">
-              ⚡ <strong>多产物兼容</strong>：自动构建 UEFI / Legacy BIOS 启动镜像、直接安装 ISO 以及 VMware 虚拟磁盘 <code>.vmdk</code>，网卡驱动全面覆盖（含 Intel i225/i226 2.5G）。
-            </div>
-          </div>
         </div>
       </div>
     </section>
@@ -2225,7 +2040,7 @@
               <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
               QModem 蜂窝模组双方案深度对比
             </h2>
-            <p class="section-desc">QModem 双前端提供两套独立方案选型，互斥编译绝不冲突；H5000M / AP3000M 另提供 Modem Pro 统一版，按需选用最称手的模组管理界面</p>
+            <p class="section-desc">QModem 双前端提供两套独立方案选型，互斥编译绝不冲突；另提供 Modem Pro、MT5700 与 MT5700M 独立方案；Next 与 MT5700 使用新版 Rust 风扇，其他方案保留原版风扇</p>
           </div>
         </div>
 
@@ -2447,8 +2262,7 @@
           <div class="defaults-tip-banner">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
             <div>
-              <strong>初次接入指引</strong>：刷机完成后请耐心等待 1-2 分钟让系统执行 EEPROM 恢复与分区展开。使用网线连接设备 LAN 口或搜索连接名为 <code>OWRT</code> 的无线网络（密码 <code>12345678</code>），浏览器访问 <code>http://192.168.10.1</code> 即可直接进入管理后台。
-              <p style="margin-top:8px;"><strong>AP3000M 网口提醒</strong>：QModem 固件（immortalwrt 主线）与 Modem Pro 固件（VIKINGYFY owrt）的 LAN / WAN 顺序相反，两套固件互刷后请自行调换网线，否则可能出现无法上网或管理页打不开。</p>
+              <strong>初次接入指引</strong>：刷机完成后请耐心等待 1-2 分钟让系统完成首次启动配置与分区展开。使用网线连接设备 LAN 口或搜索连接名为 <code>OWRT</code> 的无线网络（密码 <code>12345678</code>），浏览器访问 <code>http://192.168.10.1</code> 即可直接进入管理后台。
             </div>
           </div>
         </div>
@@ -2507,17 +2321,12 @@
                 <tr>
                   <td><strong><code>WRT-BUILD</code></strong></td>
                   <td>手动 <code>workflow_dispatch</code></td>
-                  <td>自定义按需编译。可自由切换机型与版本；分支自动匹配，X86 固定使用 immortalwrt/master，无需手填；<code>TEST=true</code> 仅语法检查，<code>TEST=false</code> 实质编译</td>
+                  <td>自定义按需编译。可选择 H5000M 的模组方案与源码仓库，分支自动匹配；<code>TEST=true</code> 仅语法检查，<code>TEST=false</code> 实质编译</td>
                 </tr>
                 <tr>
                   <td><strong><code>MTK-AUTO</code></strong></td>
                   <td>每日定时 / 手动</td>
-                  <td>全自动拉取源码，并行构建发布 H5000M 与 AP3000M 的三版本固件（QModem Next / QModem / Modem Pro，Modem Pro 基于 VIKINGYFY owrt）</td>
-                </tr>
-                <tr>
-                  <td><strong><code>OWRT-ALL</code></strong></td>
-                  <td>每日定时 / 手动</td>
-                  <td>全自动构建发布通用 x86_64 平台的双版本固件（含 EFI / Legacy / ISO / VMDK）</td>
+                  <td>全自动拉取源码，并行构建发布 H5000M 的五套固件（Next / 传统版 / Modem Pro / MT5700 / MT5700M）</td>
                 </tr>
                 <tr>
                   <td><strong><code>Auto-Clean</code></strong></td>
@@ -2588,7 +2397,7 @@
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
             </div>
             <div class="credit-role">生态整合与维护</div>
-            <div class="credit-desc">维护本 CI 生态、网络模式秒切插件及 AP3000M 射频校准注入方案。</div>
+            <div class="credit-desc">维护本 CI 项目、H5000M 模组管理及网络模式切换插件。</div>
           </a>
         </div>
       </div>
@@ -2616,10 +2425,10 @@
   <footer>
     <div class="container">
       <div class="footer-links">
-        <a href="https://github.com/LianXia233/H5000M-CI-Qmodem" target="_blank">GitHub Repository</a>
-        <a href="https://github.com/LianXia233/H5000M-CI-Qmodem/releases" target="_blank">All Releases</a>
-        <a href="https://github.com/LianXia233/H5000M-CI-Qmodem/blob/main/CHANGELOG.md" target="_blank">Changelog</a>
-        <a href="https://github.com/LianXia233/H5000M-CI-Qmodem/blob/main/LICENSE" target="_blank">MIT License</a>
+        <a href="https://github.com/Starktomy/OpenWRT-CI-H5000M" target="_blank">GitHub Repository</a>
+        <a href="https://github.com/Starktomy/OpenWRT-CI-H5000M/releases" target="_blank">All Releases</a>
+        <a href="https://github.com/Starktomy/OpenWRT-CI-H5000M/blob/main/CHANGELOG.md" target="_blank">Changelog</a>
+        <a href="https://github.com/Starktomy/OpenWRT-CI-H5000M/blob/main/LICENSE" target="_blank">MIT License</a>
       </div>
       <p style="font-size: 0.85rem; margin-bottom: 6px;">
         Designed & Powered by <a href="https://github.com/LianXia233" target="_blank" style="font-weight:700;">LianXia233</a> · ImmortalWrt 定制固件自动化构建项目
@@ -2634,7 +2443,6 @@
   <script>
     // --- State Management ---
     let currentMirror = 'acg2'; // Default: gh.acg2.mom fast mirror
-    let currentDeviceFilter = 'all'; // 'all', 'H5000M', 'AP3000M', 'X86'
     let currentVariantFilter = 'all'; // 'all', 'next', 'classic', 'modem-pro'
     let searchQuery = '';
 
@@ -2647,9 +2455,8 @@
     // 「机型-模组插件」，因此从资产名即可还原机型、变体与编译日期，不再依赖
     // Release 标签关键字（标签格式变化时也不会全盘识别错误）。
     const KNOWN_CONFIGS = [
-      'AP3000M-qmodem-next', 'AP3000M-modem-pro', 'AP3000M-qmodem',
       'H5000M-qmodem-next', 'H5000M-modem-pro', 'H5000M-qmodem',
-      'X86-qmodem-next', 'X86-qmodem'
+      'H5000M-mt5700m', 'H5000M-mt5700'
     ].sort((a, b) => b.length - a.length);
 
     function parseAssetName(name) {
@@ -2662,7 +2469,7 @@
         return {
           config: cfg,
           device: cfg.split('-')[0],
-          variant: cfg.includes('modem-pro') ? 'modem-pro' : (cfg.includes('qmodem-next') ? 'next' : 'classic'),
+          variant: inferVariant(cfg),
           date: d.slice(0, 4) + '-' + d.slice(4, 6) + '-' + d.slice(6, 8)
         };
       }
@@ -2670,15 +2477,16 @@
     }
 
     function inferDevice(tag) {
-      if (tag.startsWith('AP3000M')) return 'AP3000M';
-      if (tag.startsWith('X86') || tag.startsWith('x86')) return 'X86';
-      return 'H5000M';
+      return KNOWN_CONFIGS.some(cfg => tag.startsWith(cfg + '-')) ? 'H5000M' : null;
     }
 
     function inferVariant(tag) {
-      if (tag.includes('modem-pro')) return 'modem-pro';
-      if (tag.includes('qmodem-next')) return 'next';
-      return 'classic';
+      for (const cfg of KNOWN_CONFIGS) {
+        if (tag !== cfg && !tag.startsWith(cfg + '-')) continue;
+        const variant = cfg.slice('H5000M-'.length);
+        return variant === 'qmodem-next' ? 'next' : (variant === 'qmodem' ? 'classic' : variant);
+      }
+      return null;
     }
 
     // --- Format Bytes Utility ---
@@ -2731,16 +2539,6 @@
     }
 
     // --- Filter Handlers ---
-    function filterDevice(dev, el) {
-      if (el && el.scrollIntoView) {
-        el.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-      }
-      currentDeviceFilter = dev;
-      document.querySelectorAll('#deviceFilter .tab-pill').forEach(btn => btn.classList.remove('active'));
-      el.classList.add('active');
-      renderReleases();
-    }
-
     function filterVariant(variant, el) {
       if (el && el.scrollIntoView) {
         el.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
@@ -2775,15 +2573,13 @@
             <p style="font-size:0.88rem; margin-top:4px;">${cloudErrorMsg} · 可直接前往 GitHub Releases 页下载</p>
             <div style="margin-top:16px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
               <button class="copy-btn" onclick="fetchLiveReleases()">重新获取</button>
-              <a href="https://github.com/LianXia233/H5000M-CI-Qmodem/releases" target="_blank" rel="noopener noreferrer" class="copy-btn">打开 GitHub Releases</a>
+              <a href="https://github.com/Starktomy/OpenWRT-CI-H5000M/releases" target="_blank" rel="noopener noreferrer" class="copy-btn">打开 GitHub Releases</a>
             </div>
           </div>
         `;
         return;
       }
       const filtered = allReleases.filter(rel => {
-        // Device check
-        if (currentDeviceFilter !== 'all' && rel.device !== currentDeviceFilter) return false;
         // Variant check
         if (currentVariantFilter !== 'all' && rel.variant !== currentVariantFilter) return false;
         // Search check
@@ -2791,8 +2587,7 @@
           const haystack = [
             rel.name, rel.tag_name, rel.config || '', rel.build_date || '',
             rel.device, rel.variant,
-            rel.primary_asset ? rel.primary_asset.name : '',
-            ...(rel.extra_assets || []).map(a => a.name)
+            rel.primary_asset ? rel.primary_asset.name : ''
           ].join(' ').toLowerCase();
           if (!haystack.includes(searchQuery)) return false;
         }
@@ -2804,26 +2599,26 @@
           <div style="grid-column: 1/-1; background:var(--bg-solid); backdrop-filter:blur(8px); border:1px solid var(--border-card); border-radius:14px; padding:40px; text-align:center; color:var(--text-muted);">
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom:10px;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
             <p style="font-weight:700; font-size:1.1rem; color:var(--text-main);">未找到匹配的固件产物</p>
-            <p style="font-size:0.88rem; margin-top:4px;">请尝试重置机型或版本筛选标签，或更换搜索关键词</p>
+            <p style="font-size:0.88rem; margin-top:4px;">请尝试重置方案筛选标签，或更换搜索关键词</p>
           </div>
         `;
         return;
       }
 
-      container.innerHTML = filtered.map((rel, index) => {
+      container.innerHTML = filtered.map(rel => {
         const variantBadgeMap = {
           'next': '<span class="release-frontend-badge badge-next">⚡ QModem Next (现代版)</span>',
           'classic': '<span class="release-frontend-badge badge-classic">🏮 QModem (传统版)</span>',
-          'modem-pro': '<span class="release-frontend-badge badge-modem-pro">🛰 Modem Pro (统一版)</span>'
+          'modem-pro': '<span class="release-frontend-badge badge-modem-pro">🛰 Modem Pro (统一版)</span>',
+          'mt5700': '<span class="release-frontend-badge badge-next">📡 MT5700 (Rust)</span>',
+          'mt5700m': '<span class="release-frontend-badge badge-classic">📡 MT5700M (原生 C)</span>'
         };
         const variantBadge = variantBadgeMap[rel.variant] || variantBadgeMap['classic'];
         
         const hasPrimary = !!rel.primary_asset;
         const primaryUrl = hasPrimary ? transformUrl(rel.primary_asset.download_url) : '';
         const primarySize = hasPrimary ? formatBytes(rel.primary_asset.size) : '';
-        const primaryBtnLabel = rel.device === 'X86'
-          ? '下载 UEFI 系统镜像 (推荐)'
-          : '下载完整 Sysupgrade 固件';
+        const primaryBtnLabel = '下载完整 Sysupgrade 固件';
         const primaryBlock = hasPrimary
           ? `
               <a href="${primaryUrl}" target="_blank" rel="noopener noreferrer" class="primary-download-btn">
@@ -2848,42 +2643,6 @@
                 该 Release 未找到匹配的 ${primaryBtnLabel}，请到 GitHub Releases 页查看
               </div>
             `;
-
-        // H5000M and AP3000M only display the single largest firmware!
-        // X86 displays the specialized dropdown with format categories.
-        let extraHtml = '';
-        if (rel.device === 'X86' && rel.extra_assets && rel.extra_assets.length > 0) {
-          extraHtml = `
-            <button class="toggle-extra-btn" onclick="toggleExtra(${index})">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>
-              <span id="extraToggleText-${index}">展开其他系统格式 / 虚拟机镜像 (${rel.extra_assets.length})</span>
-              <svg id="extraToggleIcon-${index}" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="transition:transform 0.25s ease;"><polyline points="6 9 12 15 18 9"></polyline></svg>
-            </button>
-            <div class="release-extra-assets" id="extra-${index}">
-              <div style="padding:8px 12px; font-size:0.78rem; color:var(--text-muted); border-bottom:1px solid var(--border-card);">
-                UEFI 与 Legacy BIOS 镜像分区表不同，请按机器实际引导方式选择，勿混用
-              </div>
-              ${rel.extra_assets.map(asset => {
-                const tagClass = 'tag-' + (asset.format ? asset.format.toLowerCase() : 'cfg');
-                const downloadUrl = transformUrl(asset.download_url);
-                return `
-                  <div class="x86-asset-item">
-                    <span class="x86-format-tag ${tagClass}">${asset.format || 'FILE'}</span>
-                    <div class="x86-asset-meta">
-                      <span class="x86-asset-title">${asset.title || asset.name}</span>
-                      <span class="x86-asset-sub" title="${asset.name}">${asset.name}</span>
-                    </div>
-                    <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
-                      <span style="font-size:0.75rem; color:var(--text-light); font-weight:600;">${formatBytes(asset.size)}</span>
-                      <a href="${downloadUrl}" target="_blank" rel="noopener noreferrer" class="copy-btn" style="color:var(--primary); font-weight:700;">下载</a>
-                      <button class="copy-btn" onclick="copyText('${downloadUrl}')">复制</button>
-                    </div>
-                  </div>
-                `;
-              }).join('')}
-            </div>
-          `;
-        }
 
         return `
           <div class="release-card">
@@ -2910,28 +2669,10 @@
 
             <div class="release-asset-box">
               ${primaryBlock}
-
-              ${extraHtml}
             </div>
           </div>
         `;
       }).join('');
-    }
-
-    function toggleExtra(index) {
-      const el = document.getElementById(`extra-${index}`);
-      const text = document.getElementById(`extraToggleText-${index}`);
-      const icon = document.getElementById(`extraToggleIcon-${index}`);
-      if (!el) return;
-      if (el.classList.contains('open')) {
-        el.classList.remove('open');
-        text.textContent = text.textContent.replace('收起', '展开');
-        if (icon) icon.style.transform = 'rotate(0deg)';
-      } else {
-        el.classList.add('open');
-        text.textContent = text.textContent.replace('展开', '收起');
-        if (icon) icon.style.transform = 'rotate(180deg)';
-      }
     }
 
     // --- Live Fetch Releases from GitHub API ---
@@ -2941,8 +2682,8 @@
       cloudState = 'loading';
       renderReleases();
       try {
-        // 8 个配置各一个 Release，100 足够覆盖后续增长，避免 12 条上限截断
-        const response = await fetch('https://api.github.com/repos/LianXia233/H5000M-CI-Qmodem/releases?per_page=100');
+        // H5000M 五套方案及历史版本统一读取，随后只保留支持的配置
+        const response = await fetch('https://api.github.com/repos/Starktomy/OpenWRT-CI-H5000M/releases?per_page=100');
         if (!response.ok) throw new Error('GitHub API 返回 HTTP ' + response.status);
         const data = await response.json();
         if (!Array.isArray(data) || data.length === 0) throw new Error('仓库暂无 Release');
@@ -2960,31 +2701,15 @@
             if (info) break;
           }
           const dev = info ? info.device : inferDevice(tag);
+          if (!dev) return;
           const variant = info ? info.variant : inferVariant(tag);
-          const variantLabel = variant === 'modem-pro' ? 'Modem Pro 统一版' : (variant === 'next' ? 'QModem Next' : '经典 LuCI');
+          const variantLabel = { 'modem-pro': 'Modem Pro 统一版', next: 'QModem Next', classic: '经典 QModem', mt5700: 'MT5700 Rust', mt5700m: 'MT5700M 原生 C' }[variant];
 
-          // 主固件按白名单精确匹配，绝不用 assets[0] 兜底 —— 那可能是 vmdk/iso
-          const primaryFile = dev === 'X86'
-            ? assets.find(a => a.name.endsWith('-combined-efi.img.gz'))
-            : assets.find(a => a.name.endsWith('-sysupgrade.bin'));
+          // 只选择 Sysupgrade 完整固件，避免元数据或其他资产成为下载入口。
+          const primaryFile = assets.find(a => a.name.endsWith('-sysupgrade.bin'));
           const primary = primaryFile
             ? { name: primaryFile.name, size: primaryFile.size, download_url: primaryFile.browser_download_url }
             : null;
-
-          // X86 其余镜像按 UEFI / Legacy BIOS 分别标注：两种分区表不能混用。
-          const extras = [];
-          if (dev === 'X86') {
-            assets.forEach(a => {
-              const n = a.name;
-              if (primaryFile && n === primaryFile.name) return;
-              const base = { name: n, size: a.size, download_url: a.browser_download_url };
-              if (n.endsWith('-combined-efi.vmdk')) extras.push({ ...base, format: 'VMDK', title: 'VMware 虚拟磁盘 · UEFI 启动' });
-              else if (n.endsWith('-combined.vmdk')) extras.push({ ...base, format: 'VMDK', title: 'VMware 虚拟磁盘 · Legacy BIOS' });
-              else if (n.endsWith('-image-efi.iso')) extras.push({ ...base, format: 'ISO', title: 'U盘/光盘直刷镜像 · UEFI 启动' });
-              else if (n.endsWith('-image.iso')) extras.push({ ...base, format: 'ISO', title: 'U盘/光盘直刷镜像 · Legacy BIOS' });
-              else if (n.endsWith('-combined.img.gz')) extras.push({ ...base, format: 'BIOS', title: 'Legacy BIOS 磁盘镜像 · 非 UEFI' });
-            });
-          }
 
           parsed.push({
             tag_name: tag,
@@ -2994,13 +2719,8 @@
             variant: variant,
             build_date: info ? info.date : '',
             config: info ? info.config : '',
-            description: dev === 'H5000M'
-              ? `Hiveton H5000M 5G CPE · ${variantLabel} 前端 · Wi-Fi 7 (160MHz) · 双温感风扇调速`
-              : (dev === 'AP3000M'
-                  ? `AirPi AP3000M · Wi-Fi 6 (160MHz) · ${variantLabel} · 开机自动写入 EEPROM 校准修复`
-                  : `x86_64 通用架构 · ${variantLabel} · 支持 UEFI / BIOS / VMware / ISO`),
-            primary_asset: primary,
-            extra_assets: extras
+            description: `Hiveton H5000M 5G CPE · ${variantLabel} · Wi-Fi 7 (160MHz) · 双温感风扇调速`,
+            primary_asset: primary
           });
         });
 

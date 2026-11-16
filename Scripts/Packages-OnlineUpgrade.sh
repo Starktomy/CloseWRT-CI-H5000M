@@ -1,6 +1,6 @@
 #!/bin/bash
 # SPDX-License-Identifier: MIT
-# 全机型通用：把 luci-app-online-upgrade 源码放进 package/
+# H5000M 五套方案共用：把 luci-app-online-upgrade 源码放进 package/
 #
 # 为什么独立成脚本而不是塞进 Scripts/Packages.sh：Packages.sh 是「每个机型都会
 # 执行」的公共入口，但它只负责 clone/裁剪阶段的工作；本包还需要在 defconfig

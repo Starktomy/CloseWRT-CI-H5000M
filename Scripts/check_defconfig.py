@@ -16,7 +16,8 @@
    且不得混入厂商 QMI 驱动；
 3. 传统 / Next 前端互斥，Next 的 qmodem-smsd / sms-forwarder-next 必须存在；
 4. Modem Pro：modem-pro 必须存在，且不得出现任何 QModem 组件；
-5. 按机型校验设备符号与专有插件。
+5. MT5700 / MT5700M 仅启用所选插件、翻译与传输依赖；
+6. 校验 H5000M 设备符号与专有插件。
 """
 
 import argparse
@@ -77,6 +78,44 @@ class Checker:
             self.errors.append(f"配置被 defconfig 静默丢弃：{line}")
 
     def check_variant(self):
+        variants = ("qmodem", "qmodem-next", "modem-pro", "mt5700", "mt5700m")
+        if self.variant not in variants:
+            self.errors.append(f"不支持的模组方案：{self.variant}")
+            return
+        if self.name != f"H5000M-{self.variant}":
+            self.errors.append("配置名与模组方案不一致")
+
+        for variant, symbol in (
+            ("modem-pro", "CONFIG_PACKAGE_modem-pro"),
+            ("mt5700", "CONFIG_PACKAGE_luci-app-mt5700"),
+            ("mt5700m", "CONFIG_PACKAGE_luci-app-mt5700m"),
+            ("mt5700m", "CONFIG_PACKAGE_mt5700m-transport"),
+        ):
+            if self.variant != variant:
+                self.forbid(symbol, "不同模组管理方案不能同时占用 AT 串口")
+
+        if self.variant in ("mt5700", "mt5700m"):
+            self.require(f"CONFIG_PACKAGE_luci-app-{self.variant}", "所选独立模组管理插件")
+            self.require(f"CONFIG_PACKAGE_luci-i18n-{self.variant}-zh-cn", "配套中文翻译")
+            self.require("CONFIG_PACKAGE_input-support", "USB 设备兼容门控")
+            self.require("CONFIG_PACKAGE_kmod-usb-serial-option", "模组 AT 串口")
+            self.require("CONFIG_PACKAGE_kmod-usb-net-cdc-ncm", "蜂窝 NCM 数据接口")
+            self.require("CONFIG_PACKAGE_odhcp6c", "蜂窝 IPv6")
+            for symbol in (
+                "qmodem", "luci-app-qmodem", "luci-app-qmodem-next",
+                "luci-app-qmodem-generic", "luci-i18n-qmodem-zh-cn",
+                "ubus-at-daemon", "sms-tool", "sms-tool_q", "sms-forwarder-next",
+                "qmodem-smsd", "qmodem-sipd", "quectel-CM-5G-M",
+            ):
+                self.forbid(f"CONFIG_PACKAGE_{symbol}", "独立插件必须与 QModem 隔离")
+            if self.variant == "mt5700m":
+                self.require("CONFIG_PACKAGE_mt5700m-transport", "原生串口传输程序")
+                self.require("CONFIG_PACKAGE_flock", "串口操作互斥")
+            else:
+                self.require("CONFIG_BUSYBOX_CONFIG_NC", "LuCI RPC 到本地 Rust 后端")
+                self.require("CONFIG_BUSYBOX_CONFIG_TIMEOUT", "本地 RPC 请求超时")
+            return
+
         if self.variant == "modem-pro":
             self.require("CONFIG_PACKAGE_modem-pro", "Modem Pro 唯一模组管理包")
             self.require("CONFIG_MODEM_PRO_HOST_RUST", "宿主 rustup 直编开关")
@@ -148,7 +187,7 @@ class Checker:
     def check_device(self):
         self.require("CONFIG_TARGET_MULTI_PROFILE", "按设备选择 profile 所必需")
 
-        if self.name.startswith("H5000M-"):
+        if self.name in ("H5000M-qmodem", "H5000M-qmodem-next", "H5000M-modem-pro", "H5000M-mt5700", "H5000M-mt5700m"):
             self.require(
                 "CONFIG_TARGET_DEVICE_mediatek_filogic_DEVICE_hiveton_h5000m",
                 "H5000M 设备 profile",
@@ -157,26 +196,8 @@ class Checker:
             self.require("CONFIG_PACKAGE_kmod-tls", "H5000M 内核调整")
             self.require("CONFIG_PACKAGE_luci-app-h5000m-fancontrol", "H5000M 风扇控制")
             self.require("CONFIG_PACKAGE_luci-app-h5000m-netmode", "H5000M 网络模式")
-        elif self.name.startswith("AP3000M-"):
-            self.require(
-                "CONFIG_TARGET_DEVICE_mediatek_filogic_DEVICE_airpi_ap3000m",
-                "AP3000M 设备 profile",
-            )
-            self.require("CONFIG_PACKAGE_kmod-cryptodev", "AP3000M 内核调整")
-            self.require("CONFIG_PACKAGE_kmod-tls", "AP3000M 内核调整")
-            self.require("CONFIG_PACKAGE_kmod-mt7915e", "AP3000M WiFi 驱动")
-            self.require("CONFIG_PACKAGE_kmod-mt7981-firmware", "AP3000M WiFi 固件")
-            self.require("CONFIG_PACKAGE_luci-app-airpi-fancontrol", "AP3000M 风扇控制")
-            self.require("CONFIG_PACKAGE_kmod-airpi-gpio-fan", "AP3000M 风扇内核模块")
-            self.require("CONFIG_PACKAGE_kmod-hwmon-pwmfan", "AP3000M PWM 风扇")
-        elif self.name.startswith("X86-"):
-            self.require("CONFIG_TARGET_DEVICE_x86_64_DEVICE_generic", "x86_64 generic profile")
-            self.require("CONFIG_GRUB_EFI_IMAGES", "x86 EFI 引导镜像")
-            self.require("CONFIG_ISO_IMAGES", "x86 ISO 镜像")
-            self.require("CONFIG_PACKAGE_kmod-mt76x2", "MT76 PCIe 无线驱动")
-            self.require("CONFIG_PACKAGE_kmod-rtw88-8821ce", "RTL8821CE PCIe 无线驱动")
-            self.require("CONFIG_PACKAGE_kmod-rtw88-8822ce", "RTL8822CE PCIe 无线驱动")
-            self.require("CONFIG_PACKAGE_kmod-usb-xhci-hcd", "x86 USB3 xHCI 主机控制器")
+        else:
+            self.errors.append(f"不支持的 H5000M 配置：{self.name}")
 
     def run(self):
         self.check_requested()
@@ -189,7 +210,7 @@ def main():
     parser = argparse.ArgumentParser(description="Validate defconfig result for this repository")
     parser.add_argument("--config", required=True, help="defconfig 之后的 .config")
     parser.add_argument("--requested", required=True, help="defconfig 之前合并出的 .config")
-    parser.add_argument("--variant", required=True, choices=["qmodem", "qmodem-next", "modem-pro"])
+    parser.add_argument("--variant", required=True, choices=["qmodem", "qmodem-next", "modem-pro", "mt5700", "mt5700m"])
     parser.add_argument("--name", required=True, help="配置名，如 H5000M-qmodem-next")
     args = parser.parse_args()
 

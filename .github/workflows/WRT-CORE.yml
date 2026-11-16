@@ -70,7 +70,7 @@ jobs:
     # 把脚本内代号映射为 noble 以复用已验证的工具链参数。
     runs-on: ubuntu-26.04
     # 略低于平台 6h 硬上限：触发硬上限会直接杀掉 runner，
-    # 缓存的 post 保存步骤会被整段跳过（见 AP3000M-qmodem 被取消的那次运行）
+    # 缓存的 post 保存步骤会被整段跳过
     timeout-minutes: 345
     steps:
       - name: Checkout Projects
@@ -194,12 +194,11 @@ jobs:
 
       - name: Initialization Values
         run: |
-          case "$WRT_CONFIG" in
-            ''|*[!A-Za-z0-9._-]*)
-              echo "::error title=Invalid firmware configuration::WRT_CONFIG must contain only letters, numbers, dots, underscores, or hyphens."
-              exit 1
-              ;;
-          esac
+          . "$GITHUB_WORKSPACE/Scripts/H5000M-Profiles.sh"
+          h5000m_profile "$WRT_CONFIG"
+          for VAR in WRT_VARIANT WRT_VARIANT_CONFIG H5000M_FANCONTROL_REPO H5000M_RUST_FAN; do
+            echo "$VAR=${!VAR}" >> "$GITHUB_ENV"
+          done
 
           CONFIG_FILE="$GITHUB_WORKSPACE/Config/$WRT_CONFIG.txt"
           if [ ! -s "$CONFIG_FILE" ]; then
@@ -227,39 +226,11 @@ jobs:
           echo "WRT_WIFI=wifi-yes" >> $GITHUB_ENV
           echo "WRT_KVER=none" >> $GITHUB_ENV
           echo "WRT_LIST=none" >> $GITHUB_ENV
-          case "$WRT_CONFIG" in
-            *-modem-pro)
-              # 模组方案：modem-pro（独立本地 feed，取代 QModem）。
-              # Rust 后端走宿主 rustup 直编：把开关注入后续所有步骤的环境
-              # （含 feeds 包元数据扫描阶段），避免扫描把 feeds 的 rust/host
-              # 记为 modem-pro 的构建依赖而触发 1~2 小时的 rustc + LLVM 源码编译。
-              echo "WRT_VARIANT=modem-pro" >> $GITHUB_ENV
-              echo "MODEM_PRO_HOST_RUST=1" >> $GITHUB_ENV
-              ;;
-            *-qmodem)
-              echo "WRT_VARIANT=qmodem" >> $GITHUB_ENV
-              ;;
-            *)
-              echo "WRT_VARIANT=qmodem-next" >> $GITHUB_ENV
-              ;;
-          esac
+          if [ "$WRT_VARIANT" = modem-pro ]; then
+            echo "MODEM_PRO_HOST_RUST=1" >> "$GITHUB_ENV"
+          fi
 
-          # 根据配置推导机型显示名称
-          case "$WRT_CONFIG" in
-            H5000M-*)
-              WRT_MODEL="Hiveton H5000M (MT5700M)"
-              ;;
-            AP3000M-*)
-              WRT_MODEL="AirPi AP3000M"
-              ;;
-            X86-*)
-              WRT_MODEL="x86 通用平台"
-              ;;
-            *)
-              WRT_MODEL="Unknown Device"
-              ;;
-          esac
-          echo "WRT_MODEL=$WRT_MODEL" >> $GITHUB_ENV
+          echo "WRT_MODEL=Hiveton H5000M (MT5700M)" >> $GITHUB_ENV
 
       - name: Load Default Settings
         # 局域网 / 无线等出厂参数统一从显式配置文件 Config/OWRT-DEFAULT.txt 读取；
@@ -284,9 +255,7 @@ jobs:
 
           for VAR in WRT_IP WRT_PW WRT_SSID WRT_WORD \
                      WRT_NAME WRT_THEME WRT_TIMEZONE WRT_ZONENAME \
-                     WIFI_ENCRYPTION WIFI_2G_WIDTH WIFI_5G_WIDTH WIFI_COUNTRY \
-                     WRT_SSID_WIFI7 WRT_WORD_WIFI7 \
-                     WIFI_ENCRYPTION_WIFI7 WIFI_2G_WIDTH_WIFI7 WIFI_5G_WIDTH_WIFI7 WIFI_COUNTRY_WIFI7; do
+                     WIFI_ENCRYPTION WIFI_2G_WIDTH WIFI_5G_WIDTH WIFI_COUNTRY; do
             echo "$VAR=${!VAR}" >> $GITHUB_ENV
           done
 
@@ -357,7 +326,7 @@ jobs:
         uses: actions/cache/restore@v6
         with:
           # 保存同样由末尾的 actions/cache/save 步骤完成，编译失败也保留已下载的源码包
-          # 下载的源码包与机型无关，按「源码 + 分支」单独缓存，避免多机型各存一份
+          # 下载的源码包按「源码 + 分支」单独缓存，供五套方案复用
           key: wrt-dl-${{env.WRT_INFO}}-${{env.WRT_BRANCH}}-${{env.WRT_HASH}}
           restore-keys: |
             wrt-dl-${{env.WRT_INFO}}-${{env.WRT_BRANCH}}-
@@ -429,20 +398,20 @@ jobs:
           # firewall4 升级到 2026.10.29~e6f600c4 后反向成了破坏源：上游已随版本
           # 同步刷新 001-firewall4-add-support-for-fullcone-nat.patch（parse_policy
           # 枚举新增 "npt"，行号整体后移），而仓库内固定在 bac1d656 的旧快照
-          # hunk #5（"fullcone" 策略插入点）上下文失配（FAILED at 1543），两个
-          # x86 job 全部在 prepare 阶段中断。已验证上游补丁对 e6f600c4 可干净
+          # hunk #5（"fullcone" 策略插入点）上下文失配（FAILED at 1543），
+          # 构建在 prepare 阶段中断。已验证上游补丁对 e6f600c4 可干净
           # 套用（patch --dry-run 全部通过），按既定计划移除本 workaround，
           # 直接使用 feed 内随版本同步维护的补丁，避免再次漂移。
           # 若未来再次撞上上游"版本升级与补丁刷新未同 commit 落地"的竞态，
           # 参照 git 历史 6292c2d2 的做法临时替换，并同样注明移除条件。
 
-          # 2026-11-15 修复（run #143 / #164）：竞态果然再次发生。官方源 11-14 的
+          # 2026-11-15 修复（run #164）：竞态果然再次发生。官方源 11-14 的
           # Merge Official Source（a4ba8240d）把 firewall4 升到 2026.11.08~3722eadc，
           # 但自带的 001-firewall4-add-support-for-fullcone-nat.patch 仍是 10-29 版：
           # 新版 root/etc/config/firewall 删掉了两行注释，首个 hunk 是纯新增
           # （没有删除行锚点），prepare 阶段 Hunk #1 FAILED at 5，官方源全部 job
           # 都在 Compile Firmware 里跑到 firewall4/.prepared_* 后中断（约 50~60 分钟
-          # 才暴露，VIKINGYFY/immortalwrt:owrt 的 modem-pro 两 job 不受影响）。
+          # 才暴露，VIKINGYFY/immortalwrt:owrt 的 modem-pro 作业不受影响）。
           # 用仓库内已同步上下文的补丁覆盖，条件同时绑定源与 PKG_SOURCE_VERSION：
           # 上游再次升级或自行刷新补丁后自动让位，避免像 10-31 那样反向成为破坏源。
           if [ "${WRT_SOURCE}" = "immortalwrt/immortalwrt" ] && \
@@ -453,8 +422,8 @@ jobs:
             echo "Refreshed firewall4 fullcone patch for 2026.11.08~3722eadc"
           fi
 
-      - name: Import luci-app-online-upgrade (All Models)
-        # 全机型接入在线升级插件 v2（Rust 后端）。必须在 make defconfig 之前完成，
+      - name: Import luci-app-online-upgrade (H5000M)
+        # H5000M 五套方案接入在线升级插件 v2（Rust 后端）。必须在 make defconfig 之前完成，
         # 否则 Config/GENERAL.txt 里的 CONFIG_PACKAGE_luci-app-online-upgrade=y
         # 找不到包而被 Kconfig 丢弃。脚本内部做结构断言与行尾归一化，失败即红。
         run: |
@@ -469,22 +438,20 @@ jobs:
           $GITHUB_WORKSPACE/Scripts/Packages.sh
           $GITHUB_WORKSPACE/Scripts/Handles.sh
 
+      - name: Check H5000M Device Packages
+        run: |
+          bash "$GITHUB_WORKSPACE/Scripts/Check-Device-Packages.sh" "$WRT_CONFIG" "$GITHUB_WORKSPACE/wrt"
+
       - name: Custom Settings
         run: |
           cd ./wrt/
 
-          # 按模组方案选择前端配置文件：
-          #   qmodem-next（默认）→ QMODEM-NEXT.txt；qmodem → QMODEM.txt；modem-pro → MODEM-PRO.txt
-          case "$WRT_VARIANT" in
-            qmodem)    VARIANT_FILE="$GITHUB_WORKSPACE/Config/QMODEM.txt" ;;
-            modem-pro) VARIANT_FILE="$GITHUB_WORKSPACE/Config/MODEM-PRO.txt" ;;
-            *)         VARIANT_FILE="$GITHUB_WORKSPACE/Config/QMODEM-NEXT.txt" ;;
-          esac
-
-          # GENERAL.txt 必须在所有模式下加载：它是 qmodem 核心、通用插件与工具链
-          # 配置的真实来源。TEST 模式此前跳过 GENERAL，生成的 .config 与实际固件
-          # 相差数百个符号，既无法用于排查也无法验证配置合并顺序。
-          cat "$WRT_CONFIG_FILE" "$GITHUB_WORKSPACE/Config/GENERAL.txt" "$VARIANT_FILE" >> .config
+          VARIANT_FILE="$GITHUB_WORKSPACE/Config/$WRT_VARIANT_CONFIG"
+          cat "$WRT_CONFIG_FILE" "$GITHUB_WORKSPACE/Config/GENERAL.txt" >> .config
+          if [ "$WRT_VARIANT" = mt5700 ] || [ "$WRT_VARIANT" = mt5700m ]; then
+            cat "$GITHUB_WORKSPACE/Config/MODEM-STANDALONE.txt" >> .config
+          fi
+          cat "$VARIANT_FILE" >> .config
 
           # 启用 ccache，把编译缓存落到 ./.ccache（与上面缓存的 path 对应），
           # 重复编译、仅改配置或插件时可大幅缩短耗时
@@ -520,97 +487,10 @@ jobs:
 
           make download -j$(nproc)
 
-      - name: Prebuild AirPi Rust Binary (AP3000M)
-        # 仅 AP3000M 需要。luci-app-airpi-fancontrol 的守护进程 airpi-fanctl 由 Rust 编写，
-        # 默认路径会让 OpenWrt 从源码构建一整套 rust/host（rustc + cargo + LLVM），约 1.5~3 小时，
-        # 这正是 AP3000M 比同为 filogic 的 H5000M 恒定慢约 2 小时的原因。
-        # 这里照搬上游 LianXia233/luci-app-airpi3000m-fancontrol 的 CI 做法：
-        # 用 runner 自带的 rustup 配合源码树里已构建好的 aarch64 musl 交叉链接器直接 cargo
-        # 交叉编译，再通过 AIRPI_PREBUILT=1 / AIRPI_PREBUILT_BIN 交给包 Makefile，
-        # 从而完全跳过 rust/host 的源码构建。预编译失败会自动回退，不影响固件产出。
-        if: contains(env.WRT_CONFIG, 'AP3000M') && env.WRT_TEST != 'true'
-        run: |
-          cd ./wrt/
-
-          # 用绝对路径：下面的子 shell 会 cd 进 $PKG_DIR/src，相对路径会失效
-          PKG_DIR="$(pwd)/package/luci-app-airpi-fancontrol"
-          PREBUILT_DIR="$(pwd)/airpi-prebuilt"
-
-          if [ ! -f "$PKG_DIR/src/Cargo.toml" ]; then
-            echo "::warning::未找到 $PKG_DIR/src/Cargo.toml，跳过预编译（将由源码构建 rust/host）"
-            exit 0
-          fi
-
-          # 失败即回退的正确写法：先在父 shell 关闭 errexit（GHA 的 run 默认是
-          # bash -e），再把受保护子 shell 当作普通语句执行并取回退出码。
-          # 不能写成 `if ( set -e; ... ); then`：作为 if 条件的复合命令会使其中的
-          # errexit 全部失效，子 shell 会一路跑到底，最终由最后一条命令的退出码
-          # 决定分支，中途失败被完全吞掉。
-          set +e
-          (
-            set -euxo pipefail
-
-            # 确保目标交叉链接器就绪：命中缓存时秒过，冷编译才会真正构建工具链
-            make toolchain/install -j$(nproc)
-
-            # 绝对路径：下面会 cd 进 $PKG_DIR/src，cargo 按当前工作目录解析相对
-            # linker，写相对路径会得到 "linker ... not found"
-            LINKER="$(find "$(pwd)/staging_dir" -type f -name 'aarch64-openwrt-linux-musl-gcc' -perm -111 | head -1)"
-            [ -n "$LINKER" ] || LINKER="$(find "$(pwd)/staging_dir" -type f -name 'aarch64-*linux-musl-gcc' -perm -111 | head -1)"
-            [ -n "$LINKER" ] || { echo "未找到 aarch64 musl 交叉链接器"; exit 1; }
-            LINKER="$(readlink -f "$LINKER")"
-            echo "使用交叉链接器: $LINKER"
-
-            # runner 镜像通常自带 rustup，缺失时最小化安装
-            if ! command -v rustup >/dev/null 2>&1; then
-              curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
-                | sh -s -- -y --profile minimal --default-toolchain stable
-            fi
-            export PATH="$HOME/.cargo/bin:$PATH"
-            rustup target add aarch64-unknown-linux-musl
-
-            # 用环境变量指定 linker，避免覆盖 runner 已有的 ~/.cargo/config.toml
-            export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER="$LINKER"
-
-            cd "$PKG_DIR/src"
-            cargo build --locked --release --target aarch64-unknown-linux-musl
-
-            # 产物自检：cargo 退出 0 但产物缺失同样按失败处理，
-            # 绝不能带着空目录进入注入分支
-            BIN="target/aarch64-unknown-linux-musl/release/airpi-fanctl"
-            [ -f "$BIN" ] || { echo "cargo 未产出 $BIN"; exit 1; }
-
-            mkdir -p "$PREBUILT_DIR"
-            cp -f "$BIN" "$PREBUILT_DIR/airpi-fanctl"
-
-            # 让包走预编译分支，跳过 rust/host 源码构建
-            python3 "$GITHUB_WORKSPACE/Scripts/inject_airpi_prebuilt.py" "$PKG_DIR/Makefile"
-          )
-          RC=$?
-          set -e
-
-          if [ "$RC" -eq 0 ]; then
-            echo "airpi-fanctl 预编译完成，本次将跳过 rust/host 构建"
-          else
-            echo "::warning::airpi-fanctl 预编译失败（rc=$RC），回退到源码构建 rust/host（本次编译将额外增加约 1.5~3 小时）"
-            # 清掉半成品：包 Makefile 未带 AIRPI_PREBUILT 标记时仍会走源码构建，
-            # 留着二进制只会占空间并造成状态不一致
-            rm -rf "$PREBUILT_DIR"
-          fi
-
-          # 一致性兜底：Makefile 已被标记预编译但二进制缺失时，
-          # Build/Compile 里的 $(INSTALL_BIN) 会因 no such file 直接失败。
-          # 这里主动撤销注入，确保任何情况下都不会停在这个死状态。
-          if grep -q '^AIRPI_PREBUILT:=1$' "$PKG_DIR/Makefile" && [ ! -f "$PREBUILT_DIR/airpi-fanctl" ]; then
-            echo "::warning::预编译标记与二进制不一致，撤销注入并回退源码构建"
-            sed -i '/^AIRPI_PREBUILT:=1$/d; /^AIRPI_PREBUILT_BIN:=/d' "$PKG_DIR/Makefile"
-            rm -rf "$PREBUILT_DIR"
-          fi
-
       - name: Rust Cache (online-upgrade)
         # 缓存 ~/.cargo（registry 元数据与 crate 包）与 cargo target 目录：
-        # 同一 commit 重复构建、以及不同机型的重复构建都只做增量编译。
-        # 不设 per-config key，让同一架构的多个机型共用一份缓存（target 下按
+        # 同一 commit 重复构建、以及五套方案之间的重复构建都只做增量编译。
+        # 不设 per-config key，让 H5000M 五套方案共用一份缓存（target 下按
         # target-triple 分目录，互不覆盖）；key 由 Cargo.lock 哈希决定，
         # 依赖变动时自动失效重建，不会拿到过期产物。
         if: env.WRT_TEST != 'true'
@@ -645,11 +525,9 @@ jobs:
           ARCH_PKGS="$(sed -n 's/^CONFIG_TARGET_ARCH_PACKAGES="\(.*\)"$/\1/p' ./.config | head -n1)"
           case "$ARCH_PKGS" in
             aarch64*) ARCH=aarch64; TRIPLE=aarch64-unknown-linux-musl; CPU_ARGS="-C target-cpu=cortex-a53" ;;
-            x86_64*)  ARCH=x86_64;  TRIPLE=x86_64-unknown-linux-musl;  CPU_ARGS="" ;;
-            *) echo "::error::不支持的目标架构 '${ARCH_PKGS}'（仅 aarch64_cortex-a53 / x86_64）"; exit 1 ;;
+            *) echo "::error::不支持的目标架构 '${ARCH_PKGS}'（仅支持 H5000M 的 aarch64 目标）"; exit 1 ;;
           esac
-          # mt7981（H5000M / AP3000M）为 Cortex-A53，显式指定；x86 不设 target-cpu，
-          # 保持基线指令集，避免在旧 CPU 上触发非法指令。
+          # H5000M 的 MT7987A 使用 Cortex-A53，显式指定目标 CPU。
 
           # 交叉 C 编译器：ring 需要；同时作为 cargo 的 linker
           LINKER="$(find "$(pwd)/staging_dir" -type f -name "${ARCH}-openwrt-linux-musl-gcc" -perm -111 2>/dev/null | head -1)"
@@ -701,11 +579,11 @@ jobs:
           echo "二进制体积：strip 前 ${SIZE_BEFORE} 字节 → strip 后 ${SIZE_AFTER} 字节"
 
           # 落位与自检：架构不符或非静态链接会让设备上直接跑不起来，宁可在构建期红掉
-          # x86_64-musl 默认 static-pie、aarch64-musl 为 statically linked，两者均无 INTERP/NEEDED，同属完全静态
+          # 接受 aarch64 完全静态 ELF 的两种 file 输出措辞。
           mkdir -p "$(dirname "$BIN_OUT")"
           install -m 0755 "$BIN" "$BIN_OUT"
           file "$BIN_OUT"
-          file "$BIN_OUT" | grep -Eq "ELF 64-bit.*(ARM aarch64|x86-64).*(statically linked|static-pie linked)" || {
+          file "$BIN_OUT" | grep -Eq "ELF 64-bit.*ARM aarch64.*(statically linked|static-pie linked)" || {
             echo "::error::$BIN_OUT 架构或链接方式不符（期望 ${ARCH} 静态 musl ELF）"
             exit 1
           }
@@ -720,10 +598,32 @@ jobs:
             echo "- 产物体积: ${SIZE_AFTER} 字节"
           } >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Rust Cache (fan controller)
+        if: env.WRT_TEST != 'true' && env.H5000M_RUST_FAN == '1'
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: "wrt/package/luci-app-h5000m-fancontrol/src -> ${{ github.workspace }}/wrt/.rust-build/fancontrol/target"
+          shared-key: h5000m-fancontrol
+          cache-on-failure: "true"
+
+      - name: Rust Cache (MT5700 backend)
+        if: env.WRT_TEST != 'true' && env.WRT_VARIANT == 'mt5700'
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: "wrt/package/luci-app-mt5700/src/rust -> ${{ github.workspace }}/wrt/.rust-build/mt5700/target"
+          shared-key: mt5700
+          cache-on-failure: "true"
+
+      - name: Precompile H5000M Device Backends
+        if: env.WRT_TEST != 'true' && env.H5000M_RUST_FAN == '1'
+        timeout-minutes: 45
+        run: |
+          bash "$GITHUB_WORKSPACE/Scripts/Prebuild-Device-Backends.sh" "$WRT_CONFIG" "$GITHUB_WORKSPACE/wrt"
+
       - name: Setup Host Rust Toolchain (Modem-Pro)
         # modem-pro 的 Rust 守护进程 modemd 由宿主 rustup 直编（MODEM_PRO_HOST_RUST=1）：
         # 需要宿主 rustc + 官方 aarch64-unknown-linux-musl target，链接交给工具链自带的
-        # rust-lld（自包含静态 musl，无运行时 libc 依赖）。此步独立于 airpi 预编译步骤，
+        # rust-lld（自包含静态 musl，无运行时 libc 依赖）。此步独立于在线升级后端的预编译步骤，
         # 保证工具链无论如何都就绪，并把 cargo 目录写入 PATH 供后续编译步骤使用。
         if: contains(env.WRT_CONFIG, 'modem-pro') && env.WRT_TEST != 'true'
         run: |
@@ -804,12 +704,12 @@ jobs:
 
           # 产物统一命名：<机型>-<模组插件>-<编译日期>[-<镜像类型>].<扩展名>
           # WRT_CONFIG 本身即 "<机型>-<模组插件>"（如 H5000M-qmodem-next），
-          # 只靠文件名即可区分 qmodem-next / qmodem / modem-pro。镜像类型后缀
-          # 必须保留：X86 单次构建产出多个完整镜像格式，去掉后会互相覆盖。
+          # 只靠文件名即可区分 qmodem-next / qmodem / modem-pro / mt5700 / mt5700m，
+          # 镜像类型后缀区分 sysupgrade 与 factory。
           # 源码与时间戳等冗余信息保留在 Release 标签与描述里，不再塞进文件名。
           #
           # 只发布「可直接刷写的完整固件」，其余一律不进 upload：
-          #   白名单 slug：sysupgrade / factory / combined(-efi) / image(-efi)
+          #   白名单 slug：sysupgrade / factory
           #   过滤：manifest、config.txt、kernel.bin、rootfs.*、targz-rootfs.*，
           #         以及 mt798x-ram-*-bl2 等不含 WRT_TARGET 的 DDR 引导辅助小 bin
           # 旧逻辑是「先全部搬进 upload，再按 <2MB 删小 bin」的黑名单：≥2MB 的
@@ -828,20 +728,17 @@ jobs:
 
               # 剥掉平台 / 设备 / squashfs 前缀，只留能区分镜像格式的短标识：
               #   mediatek-filogic-hiveton_h5000m-squashfs-sysupgrade -> sysupgrade
-              #   x86-64-generic-squashfs-combined-efi               -> combined-efi
-              #   mediatek-filogic / x86-64（manifest）                -> 空
+              #   mediatek-filogic（manifest）                        -> 空
               IMG_SLUG="$(printf '%s' "$NAME" | sed -E \
-                -e 's/^mediatek-filogic-(hiveton_h5000m|airpi_ap3000m)-//' \
-                -e 's/^x86-64-generic-//' \
+                -e 's/^mediatek-filogic-hiveton_h5000m-//' \
                 -e 's/^mediatek-filogic-//' \
-                -e 's/^x86-64-//' \
                 -e 's/^squashfs-//')"
               # 白名单：只有完整固件镜像才允许进入 upload / Release。case 精确
               # 匹配，避免 rootfs / kernel / targz-rootfs / initramfs 调试镜像
               # 与 manifest 空值混进来；非白名单文件留在 bin/targets 随 make
               # clean 回收，不进 upload。
               case "$IMG_SLUG" in
-                sysupgrade|factory|combined|combined-efi|image|image-efi)
+                sysupgrade|factory)
                   NEW_FILE="$WRT_CONFIG-$WRT_DATE_SHORT-$IMG_SLUG.$EXT"
                   mv -f "$FILE" ./upload/"$NEW_FILE"
                   echo "[keep]   $(basename "$FILE") -> $NEW_FILE" ;;
@@ -860,7 +757,7 @@ jobs:
             for f in ./upload/*; do
               [ -f "$f" ] || continue
               case "$(basename "$f")" in
-                *-sysupgrade.bin|*-factory.bin|*-combined.img.gz|*-combined.vmdk|*-combined-efi.img.gz|*-combined-efi.vmdk|*-image.iso|*-image-efi.iso) ;;
+                *-sysupgrade.bin|*-factory.bin) ;;
                 *) echo "::error::upload 出现非固件文件：$(basename "$f")"; exit 1 ;;
               esac
             done
@@ -896,16 +793,12 @@ jobs:
           files: |
             ./wrt/upload/*-sysupgrade.bin
             ./wrt/upload/*-factory.bin
-            ./wrt/upload/*-combined.img.gz
-            ./wrt/upload/*-combined.vmdk
-            ./wrt/upload/*-combined-efi.img.gz
-            ./wrt/upload/*-combined-efi.vmdk
-            ./wrt/upload/*-image.iso
-            ./wrt/upload/*-image-efi.iso
           body: |
             ${{ env.WRT_MODEL }} 定制固件 · 基于 ImmortalWrt
 
             模组方案：${{env.WRT_VARIANT}}
+            模组插件版本：${{env.H5000M_MODEM_VERSION}}
+            风扇插件：${{env.H5000M_FANCONTROL_VERSION}}
 
             源码：${{env.WRT_REPO}}
             分支：${{env.WRT_BRANCH}}

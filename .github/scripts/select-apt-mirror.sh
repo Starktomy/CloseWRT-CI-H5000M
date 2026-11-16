@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # 选择 apt 镜像：以「可持续吞吐」为准，而不是 8 MB Range 的瞬时峰值。
 #
-# 背景：2026-11-10 的 OWRT-ALL 运行（job 129601853332）里，azure.archive
+# 背景：2026-11-10 的构建日志（job 129601853332）里，azure.archive
 # 的 Range 探测报出 383 MB/s，原逻辑据此「保持默认」，但真实 bulk .deb
 # 只有几十~一百 kB/s，texlive-lang-greek(79.2MB)、mupdf-tools(49.3MB)
 # 两个包各卡了 8 分钟以上，Initialization Environment 两次 20 分钟超时。

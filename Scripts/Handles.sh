@@ -328,33 +328,6 @@ fi
 # OVPN_PROTO_RECVMSG_HAS_ADDR_LEN 修复（linux-compat.h + tcp.c），
 # 不再需要注入 0002 补丁（注入反而会导致 patch hunk 失败）。
 
-# AP3000M EEPROM 模板注入 (MT7981 + MT7976 DBDC 开源驱动)
-# 将备份的 EEPROM 模板（含原厂校准数据）和首次启动初始化脚本注入固件
-# 解决 eMMC 设备 factory 分区空白导致 mt76 驱动 eeprom load fail 的问题
-# 门控：仅 AP3000M 机型构建时注入，避免 x86 / H5000M 固件误带其校准资产
-AP3000M_EEPROM_DIR="$GITHUB_WORKSPACE/AP3000M-EEPROM"
-if [[ "${WRT_CONFIG:-}" == *AP3000M* ]] && [ -d "$AP3000M_EEPROM_DIR" ]; then
-	FILES_DIR="../files"
-	mkdir -p "$FILES_DIR/lib/firmware/mediatek/"
-	mkdir -p "$FILES_DIR/etc/uci-defaults/"
-
-	# 5G 频宽由 Config/OWRT-DEFAULT.txt 的 WIFI_5G_WIDTH 驱动：
-	# AP3000M（MT7981）5G 硬件上限为 160MHz（AX），默认 160MHz，直接映射 HE${WIFI_5G_WIDTH}
-	WIFI_5G_HTMODE="HE${WIFI_5G_WIDTH:-160}"
-
-	if cp "$AP3000M_EEPROM_DIR/mt7981_eeprom_mt7976_dbdc.bin" \
-		"$FILES_DIR/lib/firmware/mediatek/mt7981_eeprom_mt7976_dbdc.bin" && \
-	   cp "$AP3000M_EEPROM_DIR/99-ap3000m-eeprom" \
-		"$FILES_DIR/etc/uci-defaults/99-ap3000m-eeprom" && \
-	   sed -i "s/^set wireless.radio1.htmode='.*'/set wireless.radio1.htmode='$WIFI_5G_HTMODE'/" \
-		"$FILES_DIR/etc/uci-defaults/99-ap3000m-eeprom" && \
-	   chmod +x "$FILES_DIR/etc/uci-defaults/99-ap3000m-eeprom"; then
-		echo "AP3000M: EEPROM template and init script has been injected (5G=${WIFI_5G_HTMODE})!"
-	else
-		echo "AP3000M: EEPROM injection failed; continuing!"
-	fi
-fi
-
 # 说明：luci-app-online-upgrade 的机型适配已迁到 v2（Rust 后端），不再需要在这里
 # 往固件里烙设备身份文件、也不再覆盖 v1 的 shell 脚本 / uci-defaults / 前端 JS。
 # v2 的升级源由 Scripts/OnlineUpgradePreset.sh 生成 /etc/config/online-upgrade 决定。

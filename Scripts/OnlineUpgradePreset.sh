@@ -4,7 +4,7 @@
 #
 # 为什么在构建期生成而不是每机型提交一份静态文件：
 #   升级源里「哪个 Release / 哪个资产」取决于运行期变量 —— WRT_CONFIG 同时
-#   决定 Release 归组（H5000M-qmodem / H5000M-qmodem-next / X86-qmodem-next ...）
+#   决定 Release 归组（H5000M 的五套独立模组方案）
 #   与产物文件名前缀（<WRT_CONFIG>-<YYYYMMDD>-...）。静态文件无法覆盖
 #   「同一份配置换源码分支编译」的组合，构建期生成则与本次产物一一对应。
 #
@@ -36,7 +36,7 @@ WRT_INFO="${WRT_INFO:-}"
 WRT_BRANCH="${WRT_BRANCH:-}"
 TARGET="./files/etc/config/online-upgrade"
 # 与 GitHub 上的仓库名大小写保持一致（API 不区分大小写，预设里不留歧义）
-UPGRADE_REPO="${ONLINE_UPGRADE_SOURCE_REPO:-LianXia233/H5000M-CI-Qmodem}"
+UPGRADE_REPO="${ONLINE_UPGRADE_SOURCE_REPO:-Starktomy/OpenWRT-CI-H5000M}"
 
 # 包未选中时不生成预设：文件会随 files/ 打进固件，但设备上没有对应软件，
 # 只会留下一个没人读的配置。Config/GENERAL.txt 默认选中它，这里只是防御。
@@ -54,19 +54,14 @@ fi
 # 与 WRT-CORE「Package Firmware」保持一致：资产名统一为
 #   <WRT_CONFIG>-<YYYYMMDD>[-<镜像类型>].<扩展名>
 # WRT_CONFIG 即 "<机型>-<模组插件>"（如 H5000M-qmodem-next），正则直接锚定
-# 配置名即可天然隔离同机型三套变体，不再需要从 .config 的 TARGET_DEVICE
+# 配置名即可天然隔离同机型五套方案，不再需要从 .config 的 TARGET_DEVICE
 # 反推平台前缀（旧规则无法区分变体，且换源码分支就要跟着改）。
 # 日期用 [0-9]+ 而非写死 8 位，便于兼容过渡期混合命名的 Release。
 case "$WRT_CONFIG" in
-	X86-*)
-		# 默认取 UEFI 镜像：现代小主机/软路由主流引导方式；BIOS/Legacy 机器
-		# 需把 combined-efi 改成 combined —— 两种镜像分区表不同，不能混用。
-		PATTERN="^${WRT_CONFIG}-[0-9]+-combined-efi\\.img\\.gz\$"
-		;;
-	*)
-		PATTERN="^${WRT_CONFIG}-[0-9]+-sysupgrade\\.bin\$"
-		;;
+	H5000M-qmodem-next|H5000M-qmodem|H5000M-modem-pro|H5000M-mt5700|H5000M-mt5700m) ;;
+	*) echo "::error::不支持的 H5000M 配置 '$WRT_CONFIG'"; exit 1 ;;
 esac
+PATTERN="^${WRT_CONFIG}-[0-9]+-sysupgrade\\.bin\$"
 
 # tag 语义来自 rust/src/github.rs：latest 取最新 Release，
 # latest@<正则> 只在该正则匹配的 Tag 里找最新。
@@ -124,10 +119,7 @@ grep -qF "option repo '${UPGRADE_REPO}'" "$TARGET" || {
 
 # 正则自检：构造示例产物名 / 示例标签，确认两条规则真能命中，
 # 避免上游 Regex::new 编译失败或锚点写错导致设备端 OTA 找不到固件。
-case "$WRT_CONFIG" in
-	X86-*) SAMPLE="${WRT_CONFIG}-20261109-combined-efi.img.gz" ;;
-	*)     SAMPLE="${WRT_CONFIG}-20261109-sysupgrade.bin" ;;
-esac
+SAMPLE="${WRT_CONFIG}-20261109-sysupgrade.bin"
 if [[ ! "$SAMPLE" =~ $PATTERN ]]; then
 	echo "::error::firmware_pattern 未匹配示例产物 ${SAMPLE}（规则=${PATTERN}）"
 	exit 1

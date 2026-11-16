@@ -1,19 +1,18 @@
 <div align="center">
 
-# 🚀 H5000M & AP3000M & X86_64 · ImmortalWrt 定制固件
+# 🚀 H5000M · ImmortalWrt 定制固件
 
-**基于 ImmortalWrt 主线源码 · 专为 5G CPE、Wi-Fi 路由器与软路由量身打造的自动化云编译生态**
+**基于 ImmortalWrt 主线源码 · 专为 Hiveton H5000M 5G CPE 打造的自动化云编译生态**
 
 [![ImmortalWrt Master](https://img.shields.io/badge/ImmortalWrt-master%20(Mainline)-brightgreen?logo=openwrt&logoColor=white&style=flat-square)](https://github.com/immortalwrt/immortalwrt)
 [![MediaTek Filogic](https://img.shields.io/badge/Platform-MediaTek%20Filogic-FF6B35?style=flat-square)](#-一-硬件支持与固件矩阵)
-[![x86_64](https://img.shields.io/badge/Platform-x86__64-informational?style=flat-square)](#-一-硬件支持与固件矩阵)
 [![Cellular QModem](https://img.shields.io/badge/Modem-QModem%20%7C%20Modem%20Pro-8b5cf6?style=flat-square)](#-二-模组方案对比与选型)
-[![CI Build](https://img.shields.io/github/actions/workflow/status/LianXia233/H5000M-CI-Qmodem/WRT-BUILD.yml?branch=main&label=CI%20Build&style=flat-square&logo=githubactions&logoColor=white)](https://github.com/LianXia233/H5000M-CI-Qmodem/actions)
+[![CI Build](https://img.shields.io/github/actions/workflow/status/Starktomy/OpenWRT-CI-H5000M/WRT-BUILD.yml?branch=main&label=CI%20Build&style=flat-square&logo=githubactions&logoColor=white)](https://github.com/Starktomy/OpenWRT-CI-H5000M/actions)
 [![License](https://img.shields.io/badge/License-GPL--3.0-blue?style=flat-square&logo=gnu&logoColor=white)](LICENSE)
 
 <p align="center">
-  <b>全面支持 Hiveton H5000M（MT7987A + MT7996E + MT5700M）、AirPi AP3000M（MT7981B）与通用 X86_64 设备</b><br>
-  集成 QModem Next 现代化前端、经典 QModem 与 Modem Pro 统一模组方案，提供一键在线无损 OTA 升级
+  <b>适配 Hiveton H5000M（MT7987A + MT7996E + MT5700M）</b><br>
+  集成 QModem Next、经典 QModem、Modem Pro、MT5700 与 MT5700M 五套独立方案，提供一键在线无损 OTA 升级
 </p>
 
 </div>
@@ -26,9 +25,8 @@
 - 📶 **QModem 双前端架构**：
   - **`*-qmodem-next`（现代版）**：采用全响应式 JavaScript 现代前端，集成 `sms-forwarder-next` 短信转发中心，交互丝滑。
   - **`*-qmodem`（传统版）**：经典 LuCI 架构与深度汉化界面，配合 `sms-tool` 原生命令行工具，稳定高效。
-- 🛰️ **Modem Pro 统一模组方案（H5000M / AP3000M 专享）**：提供 `H5000M-modem-pro` 与 `AP3000M-modem-pro` 独立配置，引入 [modem-pro-unified](https://github.com/LianXia233/modem-pro-unified) 栈——由 Rust 守护进程 `modemd` 原生接管 QMI/MBIM 拨号，搭配 ucode 世代 LuCI 界面，彻底剥离 QModem 冗余组件。
+- 🛰️ **Modem Pro 统一模组方案**：提供 `H5000M-modem-pro` 独立配置，引入 [modem-pro-unified](https://github.com/LianXia233/modem-pro-unified) 栈——由 Rust 守护进程 `modemd` 原生接管 QMI/MBIM 拨号，搭配 ucode 世代 LuCI 界面，彻底剥离 QModem 冗余组件。
 - 🔄 **硬件级在线 OTA 升级 (`luci-app-online-upgrade`)**：固件内置设备特征唯一锚点，自动识别并匹配对应 Release，支持保留配置无缝一键直升，内置国内加速镜像。
-- 🛠️ **AP3000M 射频自动注入**：采用开源 `mt76` 驱动栈，首次启动自动灌装 EEPROM 校准数据并绑定物理 MAC，彻底根治出厂 factory 分区丢失导致无 Wi-Fi 的难题。
 - ❄️ **CPE 专属硬件控制套件**：集成 CPU + 基带双温区风扇 PWM 阶梯调速、网络模式秒级切换与双链路故障倒换。
 
 ---
@@ -37,16 +35,14 @@
 
 | 目标机型 | 平台架构 / 核心 SoC | 硬件形态与特性 | Wi-Fi 驱动栈 | 源码基线与分支 |
 | :--- | :--- | :--- | :---: | :--- |
-| **`H5000M`** | MediaTek Filogic (MT7987A + MT7996E) | Hiveton H5000M 5G CPE（鼎桥 MT5700M） | ✅ Wi-Fi 7 (BE) | QModem: `immortalwrt` (`master`)<br>Modem Pro: `VIKINGYFY` (`owrt`) |
-| **`AP3000M`** | MediaTek Filogic (MT7981B + MT7976C) | AirPi AP3000M Wi-Fi 6 路由器 | ✅ Wi-Fi 6 (AX · mt76) | QModem: `immortalwrt` (`master`)<br>Modem Pro: `VIKINGYFY` (`owrt`) |
-| **`X86`** | x86_64 通用架构 | 工控机 / 软路由 / 物理 PC / 虚拟机 | — | `immortalwrt/immortalwrt` (`master`) |
+| **`H5000M`** | MediaTek Filogic (MT7987A + MT7996E) | Hiveton H5000M 5G CPE（鼎桥 MT5700M） | ✅ Wi-Fi 7 (BE) | QModem: `immortalwrt` (`master`)<br>Modem Pro / MT5700 / MT5700M: `VIKINGYFY` (`owrt`) |
 
 ### 固件产物命名规则
 
 Release 产物统一按 `机型-模组插件-编译日期[-镜像类型].扩展名` 命名：
 `机型-模组插件` 即编译配置名 `WRT_CONFIG`（如 `H5000M-qmodem-next`），
 编译日期取构建当天 `YYYYMMDD`（`Asia/Shanghai`）。仅凭文件名即可分辨同机型的
-QModem Next / QModem / Modem Pro 三套变体，无需再对照 Release 标签。
+QModem Next / QModem / Modem Pro / MT5700 / MT5700M 五套方案，无需再对照 Release 标签。
 
 **Release 只发布可直接刷写的完整固件**，命名示例：
 
@@ -55,13 +51,10 @@ QModem Next / QModem / Modem Pro 三套变体，无需再对照 Release 标签�
 | MTK sysupgrade 固件（Next） | `H5000M-qmodem-next-20261109-sysupgrade.bin` |
 | MTK sysupgrade 固件（传统版） | `H5000M-qmodem-20261109-sysupgrade.bin` |
 | MTK sysupgrade 固件（Modem Pro） | `H5000M-modem-pro-20261109-sysupgrade.bin` |
-| X86 UEFI 镜像 | `X86-qmodem-next-20261109-combined-efi.img.gz` |
-| X86 Legacy BIOS 镜像 | `X86-qmodem-next-20261109-combined.img.gz` |
-| X86 VMware 虚拟磁盘（UEFI / BIOS） | `X86-qmodem-next-20261109-combined-efi.vmdk` / `-combined.vmdk` |
-| X86 ISO 镜像（UEFI / BIOS） | `X86-qmodem-next-20261109-image-efi.iso` / `-image.iso` |
+| MTK sysupgrade 固件（MT5700） | `H5000M-mt5700-20261116-sysupgrade.bin` |
+| MTK sysupgrade 固件（MT5700M） | `H5000M-mt5700m-20261116-sysupgrade.bin` |
 
-- **镜像类型后缀不可省**：X86 单次构建产出 6 个完整镜像（EFI / BIOS 的
-  `img.gz`、`vmdk`、`iso`），去掉后会互相覆盖；
+- 镜像类型后缀区分 `sysupgrade` 与 `factory`；
 - 源码仓库、分支、`wifi-yes` 与精确到秒的时间戳不再塞进文件名，仍完整保留在
   Release 标签与描述中；
 - Release 标签格式不变：`<配置名>-<源码owner>-<分支>-<YY.MM.DD-HH.MM.SS>`。
@@ -93,7 +86,6 @@ glob。删除 manifest 之前已把内核版本与插件列表写入 `GITHUB_ENV
 | **系统主机名** | `OWRT` | 本地局域网主机标识符 |
 | **默认 Wi-Fi SSID** | `OWRT` | 2.4G 与 5G 双频合一名称 |
 | **默认 Wi-Fi 密钥** | `12345678` | WPA/WPA2 混合加密 |
-| **频宽规格（WiFi 6 · AP3000M）** | 2.4G `40MHz` · 5G `160MHz` | 802.11ax（HE），双频并发无线高吞吐 |
 | **频宽规格（WiFi 7 · H5000M）** | 2.4G `40MHz` · 5G `160MHz` | 802.11be（EHT），双频设备 5G 上限 160MHz |
 | **时区与国家代码** | `CST-8` (`Asia/Shanghai`) / `CN` | 保证时钟对齐与合规无线信道 |
 
@@ -101,7 +93,20 @@ glob。删除 manifest 之前已把内核版本与插件列表写入 `GITHUB_ENV
 
 ## 🧩 二、 模组方案对比与选型
 
-针对不同用户的操作习惯与架构偏好，项目提供三套并列互斥的固件变体：
+针对不同用户的操作习惯与架构偏好，项目提供五套并列互斥的固件方案：
+
+| 配置 | 模组管理 | 风扇来源 | 定时构建源码 |
+|---|---|---|---|
+| `H5000M-qmodem-next` | QModem Next | LianXia233 Rust 新版 | immortalwrt/master |
+| `H5000M-qmodem` | 传统 QModem | FAN789 原版 | immortalwrt/master |
+| `H5000M-modem-pro` | Modem Pro | FAN789 原版 | VIKINGYFY/owrt |
+| `H5000M-mt5700` | LianXia233/luci-app-mt5700 | LianXia233 Rust 新版 | VIKINGYFY/owrt |
+| `H5000M-mt5700m` | FAN789/luci-app-mt5700m | FAN789 原版 | VIKINGYFY/owrt |
+
+每份固件只包含一套模组管理，避免抢占同一 AT 串口。选择 MT5700/MT5700M 指的是
+两套管理插件，均用于 MT5700M 模组。QModem Next 只更换风扇插件，保留 QModem 管理。
+Modem Pro 的模组管理与风扇均沿用原方案。
+
 
 ### 1. QModem 方案对比 (`*-qmodem-next` vs `*-qmodem`)
 
@@ -113,13 +118,13 @@ glob。删除 manifest 之前已把内核版本与插件列表写入 `GITHUB_ENV
 | **共用核心** | 统一搭载 `qmodem` 核心引擎、`ubus-at-daemon` 与通用 QMI 驱动栈 | 同左 |
 | **隔离策略** | 锁定 `kmod-usb-net-qmi-wwan`，两套前端在固件中绝不交叉混编 | 同左 |
 
-### 2. Modem Pro 统一模组方案 (`*-modem-pro`，MTK 机型专享)
+### 2. Modem Pro 统一模组方案 (`H5000M-modem-pro`)
 
-`H5000M-modem-pro` 与 `AP3000M-modem-pro` 是独立演进的第三套方案，完全剥离 QModem：
+`H5000M-modem-pro` 是独立演进的第五套方案，完全剥离 QModem：
 
 | 评估维度 | `*-modem-pro` 方案特征 |
 | :--- | :--- |
-| **支持机型** | `H5000M-modem-pro`（MT7987A）与 `AP3000M-modem-pro`（MT7981B） |
+| **支持机型** | `H5000M-modem-pro`（MT7987A） |
 | **源码分支** | 基于 `VIKINGYFY/immortalwrt` 的 `owrt` 稳定分支构建 |
 | **拨号与管控栈** | [modem-pro-unified](https://github.com/LianXia233/modem-pro-unified) 统一栈，单一顶层包 `modem-pro` |
 | **后端引擎** | **Rust 守护进程 `modemd`**，原生处理 QMI / MBIM 协议拨号，经 netifd 协议纳管 |
@@ -127,9 +132,21 @@ glob。删除 manifest 之前已把内核版本与插件列表写入 `GITHUB_ENV
 | **与 QModem 关系** | **彻底剔除 QModem**：Next 前端、传统前端、通用界面与 `qmodem` 底层全数移除，零代码冗余 |
 | **编译机制** | 宿主 rustup 直编（`MODEM_PRO_HOST_RUST=1`），跳过 feeds 源码编译 rust/host，秒级构建 |
 
-> [!WARNING]
-> **AP3000M 固件互刷注意（网口映射相反）**：
-> `AP3000M-qmodem-next` / `AP3000M-qmodem`（基于官方 `master`）与 `AP3000M-modem-pro`（基于 `VIKINGYFY/owrt`）两套源码对 AP3000M 的 **LAN / WAN 网口映射是相反的**！在两类固件之间互刷后，若发现无法上网或无法打开后台，只需将原 LAN 口的网线换插到 WAN 口（或反之）即可，系统内部配置无需修改。
+---
+
+### 3. MT5700 / MT5700M 独立方案
+
+提供以下两套独立管理插件：
+
+- **MT5700**：[LianXia233/luci-app-mt5700](https://github.com/LianXia233/luci-app-mt5700)，
+  LuCI 与 Rust/Tokio 后端单包交付，使用新版 Rust 风扇。风扇经后端本地 RPC 获取
+  模组温度，保持后端独占串口。
+- **MT5700M**：[FAN789/luci-app-mt5700m](https://github.com/FAN789/luci-app-mt5700m)，
+  LuCI 与原生 C 传输程序 `mt5700m-transport`，使用原版风扇。
+
+两套均排除 QModem 与 Modem Pro；CI 检查主包、中文翻译、串口传输依赖和互斥关系。
+新版风扇与 MT5700 后端先交叉编译为 aarch64 静态程序，再交给 LuCI 打包；构建时校验
+架构、静态链接及安装路径，避免漏装后端或打入宿主机程序。
 
 ---
 
@@ -137,16 +154,15 @@ glob。删除 manifest 之前已把内核版本与插件列表写入 `GITHUB_ENV
 
 ### 1. 固件在线 OTA 升级 (`luci-app-online-upgrade`)
 
-全机型（H5000M / AP3000M / X86 共 8 个配置）默认内置 v2 版本（Rust 后端 + rpcd 接口），
+H5000M 五套配置默认内置 v2 版本（Rust 后端 + rpcd 接口），
 源码取自 [LianXia233/luci-app-online-upgrade](https://github.com/LianXia233/luci-app-online-upgrade)：
 
 - **按机型锁定升级源**：构建期由 `Scripts/OnlineUpgradePreset.sh` 生成
   `/etc/config/online-upgrade`，其中 `repo` / `tag` / `firmware_pattern` 与本次产物一一对应，
-  不会把 X86 的镜像刷进 MTK 机型；
+  按 H5000M 的模组方案与源码分支匹配固件；
 - **资产名精确匹配**：`firmware_pattern` 直接锚定编译配置名
-  （如 `^H5000M-qmodem-next-[0-9]+-sysupgrade\.bin$`），X86 固定取 UEFI 镜像
-  `^X86-qmodem-next-[0-9]+-combined-efi\.img\.gz$`；配置名含机型与模组插件，
-  因此同机型三套变体之间不会互相误匹配；
+  （如 `^H5000M-qmodem-next-[0-9]+-sysupgrade\.bin$`）；配置名含模组方案，
+  因此同机型五套变体之间不会互相误匹配；
 - **国内下载加速**：预设 `proxy` 为 `https://gh.acg2.mom/`，配合 Rust 后端的
   分块并发下载（`dl_workers` / `dl_chunk_mb` / `dl_stall_sec` / `dl_retries`）；
 - **自动重装守卫与安装路径一致**：`90-online-upgrade-auto` 用 `-x /usr/bin/online-upgrade`
@@ -157,13 +173,11 @@ glob。删除 manifest 之前已把内核版本与插件列表写入 `GITHUB_ENV
   `sha256sum` 格式写进 Release 正文；上游 `github.rs` 的 `find_sha256_in_text`
   按资产名取到后执行真实比对，不新增任何资产，与「Release 只留固件」一致；
 
-各机型预设对照（`<配置名>` 即 `WRT_CONFIG`，形如 `机型-模组插件`；`<owner>` 为本次编译所用源码仓库 owner）：
+五套方案预设对照（`<配置名>` 即 `WRT_CONFIG`，形如 `机型-模组插件`；`<owner>` 为本次编译所用源码仓库 owner）：
 
 | 机型配置 | `tag` | `firmware_pattern` |
 | :--- | :--- | :--- |
-| `H5000M-qmodem` / `-qmodem-next` / `-modem-pro` | `latest@^<配置名>-<owner>-<分支>-` | `^<配置名>-[0-9]+-sysupgrade\.bin$` |
-| `AP3000M-qmodem` / `-qmodem-next` / `-modem-pro` | `latest@^<配置名>-<owner>-<分支>-` | `^<配置名>-[0-9]+-sysupgrade\.bin$` |
-| `X86-qmodem` / `-qmodem-next` | `latest@^<配置名>-<owner>-<分支>-` | `^<配置名>-[0-9]+-combined-efi\.img\.gz$` |
+| `H5000M-qmodem` / `-qmodem-next` / `-modem-pro` / `-mt5700` / `-mt5700m` | `latest@^<配置名>-<owner>-<分支>-` | `^<配置名>-[0-9]+-sysupgrade\.bin$` |
 
 说明：
 
@@ -171,8 +185,6 @@ glob。删除 manifest 之前已把内核版本与插件列表写入 `GITHUB_ENV
   `H5000M-qmodem-next` 的字符串前缀，只写 `^H5000M-qmodem-` 会让前者命中后者的
   发布；再锚定分支可防止同一 owner 换分支编译时跨分支取最新，分支名中的 `.`
   会转义成 `\.` 再拼进正则；
-- X86 的 BIOS/Legacy 机器需把 `firmware_pattern` 改成
-  `^<配置名>-[0-9]+-combined\.img\.gz$`（两种镜像分区表不同，不能混用）；
 - 上游默认配置里的 `enabled` / `keep_config` 在 v2 的 Rust 与 rpcd 代码中**未被读取**，
   预设不写入这两个键，避免"配了却不起作用"；升级前的配置保留由插件自身逻辑决定；
 - `expected_sha256` 不写进预设：那是「本次 Release 的固定值」，出厂固化会让之后
@@ -186,21 +198,15 @@ glob。删除 manifest 之前已把内核版本与插件列表写入 `GITHUB_ENV
 > **旧固件 OTA 过渡**：产物改用 `机型-模组插件-编译日期` 命名后，旧固件里固化的
 > `firmware_pattern` 仍是平台前缀式正则（如
 > `^mediatek-filogic-hiveton_h5000m-squashfs-sysupgrade-.*\.bin$`），无法匹配新命名的资产。
-> 已刷入旧固件的设备需**手动下载对应 `*-sysupgrade.bin` 刷一次**（X86 用
-> `*-combined-efi.img.gz`），或先在 LuCI 里把 `firmware_pattern` 改成上表的新正则，
+> 已刷入旧固件的设备需**手动下载对应 `*-sysupgrade.bin` 刷一次**，
+> 或先在 LuCI 里把 `firmware_pattern` 改成上表的新正则，
 > 之后即可恢复一键 OTA；新固件出厂预设已是新正则，不受影响。
 
-Rust 后端用**官方 Rust SDK**（rustup stable + `aarch64-unknown-linux-musl` /
-`x86_64-unknown-linux-musl`）交叉编译，链接交给 OpenWrt 工具链的交叉 `gcc`，
-不经过 OpenWrt SDK 自带的 rust 构建链。MTK 机型显式使用 `-C target-cpu=cortex-a53`
-（MT7981 为 Cortex-A53），X86 保持基线指令集；产物为静态 musl ELF，
+Rust 后端用**官方 Rust SDK**（rustup stable + `aarch64-unknown-linux-musl`）交叉编译，
+链接交给 OpenWrt 工具链的交叉 `gcc`，不经过 OpenWrt SDK 自带的 rust 构建链。
+H5000M 显式使用 `-C target-cpu=cortex-a53`；产物为 aarch64 静态 musl ELF，
 安装路径与包 Makefile 期望的 `/usr/bin/online-upgrade` 一致。
-
-产物自检（`file`）在两种架构上的措辞不同：`x86_64-unknown-linux-musl` 默认产出
-**static-pie linked**（`ET_DYN`，启动时自重定位），`aarch64-unknown-linux-musl` 产出
-**statically linked**。两者均无 `PT_INTERP`、无任何 `DT_NEEDED`，同属完全静态，
-设备上不需要加载器或共享 libc 即可运行，因此断言同时接受这两种措辞，
-只拒绝动态链接、非 ELF64 与错架构产物。在设备上 `file` 看到 `static-pie` 属正常。
+构建期通过 `file` 检查目标架构与静态链接方式。
 
 两种编译方式的差异（取舍已固定，不做隐式变更）：
 
@@ -219,7 +225,6 @@ Rust 后端用**官方 Rust SDK**（rustup stable + `aarch64-unknown-linux-musl`
 ### 2. 硬件风扇温控与多网切换
 - **双温区联动风扇控制 (`luci-app-h5000m-fancontrol`)**：定时轮询 CPU 与模组硬件传感器，通过阶梯 PWM 曲线实现静音与强效散热平衡；
 - **多网络智能切换 (`luci-app-h5000m-netmode`)**：支持“纯 5G”、“纯 WAN 有线”及“主备热备 / 负载均衡”三档模式，配合 `mwan3` 探针实现毫秒级容灾切流；
-- **AP3000M EEPROM 自动化射频恢复**：开机自启服务 `99-ap3000m-eeprom` 自动提取物理 MAC 并写入 factory 分区，激活 Wi-Fi 6 射频。
 
 ---
 
@@ -231,11 +236,10 @@ Rust 后端用**官方 Rust SDK**（rustup stable + `aarch64-unknown-linux-musl`
 
 | 工作流文件 | 调度策略 | 核心职责 |
 | :--- | :--- | :--- |
-| **`WRT-BUILD.yml`** | 手动 `workflow_dispatch` | 自定义按需编译：自选机型与方案（`-qmodem-next` / `-qmodem` / `-modem-pro`），支持 `TEST=true` 快速语法校验 |
-| **`MTK-AUTO.yml`** | 每日定时 / 联动触发 | 自动构建并并行发布 MTK 机型（H5000M / AP3000M）的全部三版本固件 |
-| **`OWRT-ALL.yml`** | 每日定时 / 联动触发 | 自动构建并并行发布 X86 平台的双版本固件 |
-| **`Auto-Clean.yml`** | 每日定时 05:00 (CST) | 轮换保留最新一份 Release，自动清理过期 Tag 与 30 天以前的 Actions 日志 |
-| **`Cache-Clean.yml`** | 每周定时 / 手动 | 回收 Actions 编译缓存，避免依赖冲突 |
+| **`WRT-BUILD.yml`** | 手动 `workflow_dispatch` | 自定义按需编译：选择 H5000M 模组方案（Next / 传统版 / Modem Pro / MT5700 / MT5700M），支持 `TEST=true` 生成并检查配置 |
+| **`MTK-AUTO.yml`** | 每日定时 / 联动触发 | 自动构建并并行发布 H5000M 的全部五方案固件 |
+| **`Auto-Clean.yml`** | 每日定时 05:00 (CST) | 默认清空 Release，手动触发可选择按配置保留最新版本；清理过期 Tag 与 30 天以前的 Actions 日志 |
+| **`Cache-Clean.yml`** | 手动 | 回收 Actions 编译缓存 |
 
 > 所有作业统一运行在 `ubuntu-26.04`。`ubuntu-latest` 自 2026-10-19 起滚动迁移到
 > Ubuntu 26.04（迁移期内仍可能落到 24.04），因此显式锁定标签。上游
@@ -247,8 +251,8 @@ Rust 后端用**官方 Rust SDK**（rustup stable + `aarch64-unknown-linux-musl`
 
 1. 登录 GitHub，进入仓库 **Actions** 页面；
 2. 在左侧工作流列表选择 **`WRT-BUILD`**，点击右侧 **`Run workflow`**；
-3. 选择目标机型配置（例如 `H5000M-qmodem-next`、`H5000M-qmodem` 或 `H5000M-modem-pro`）；
-4. 源码仓库由流水线自动识别绑定，无需手动输入；
+3. 选择 H5000M 模组方案配置（Next、传统版、Modem Pro、MT5700 或 MT5700M）；
+4. 选择源码仓库，流水线自动匹配分支；
 5. 如需输出正式固件，将 **`TEST`** 参数改为 **`false`** 即可。
 
 ---
@@ -256,25 +260,28 @@ Rust 后端用**官方 Rust SDK**（rustup stable + `aarch64-unknown-linux-musl`
 ## 📂 仓库项目结构
 
 ```text
-H5000M-CI-Qmodem/
+OpenWRT-CI-H5000M/
 ├── .github/workflows/          # GitHub Actions 云编译流水线
 │   ├── WRT-CORE.yml            # 核心编译执行引擎
 │   ├── WRT-BUILD.yml           # 手动触发定制编译
 │   ├── MTK-AUTO.yml            # MTK 架构定时自动发版
-│   ├── OWRT-ALL.yml            # X86 架构定时自动发版
 │   ├── Auto-Clean.yml          # 历史制品与日志轮换清理
 │   └── Cache-Clean.yml         # 构建缓存回收
-├── AP3000M-EEPROM/             # AP3000M 射频恢复专属资产与脚本
 ├── Config/                     # 模块化 Kconfig 配置文件片段
 │   ├── OWRT-DEFAULT.txt        # 集中化出厂默认网络与无线参数
 │   ├── GENERAL.txt             # 通用内核优化与基础插件
 │   ├── QMODEM-NEXT.txt         # QModem Next 现代化前端依赖
 │   ├── QMODEM.txt              # 传统 QModem 前端依赖
 │   ├── MODEM-PRO.txt           # Modem Pro 统一方案依赖（禁用 QModem）
-│   ├── H5000M-*.txt            # H5000M 各方案目标配置
-│   ├── AP3000M-*.txt           # AP3000M 各方案目标配置
-│   └── X86-*.txt               # X86 各方案目标配置
+│   ├── MODEM-STANDALONE.txt    # 独立插件的互斥配置
+│   ├── MT5700.txt              # 新版模组管理插件
+│   ├── MT5700M.txt             # 原生 C 传输模组管理插件
+│   └── H5000M-*.txt            # H5000M 各方案目标配置
 ├── Scripts/                    # 流水线生命周期钩子脚本
+│   ├── H5000M-Profiles.sh      # 五套方案与风扇来源映射
+│   ├── Prepare-Device-Packages.sh # 专用插件结构和版本检查
+│   ├── Check-Device-Packages.sh   # 专用插件上游测试
+│   ├── Prebuild-Device-Backends.sh # Rust 风扇与 MT5700 后端交叉编译
 │   ├── Packages.sh             # 第三方 Feed 扩展源同步与锁定
 │   ├── Packages-OnlineUpgrade.sh  # 在线升级插件导入（结构断言 + 行尾归一化）
 │   ├── OnlineUpgradePreset.sh  # 按机型生成 /etc/config/online-upgrade

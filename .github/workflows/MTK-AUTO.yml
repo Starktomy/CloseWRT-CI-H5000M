@@ -27,8 +27,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # 每款 MTK 机型三套变体：QModem Next / QModem 传统版 / Modem Pro 统一版
-          # Modem Pro 两套使用 VIKINGYFY/immortalwrt 的 owrt 分支，其余使用 immortalwrt/master
+          # H5000M：Next / 传统版 / Modem Pro / MT5700 / MT5700M
+          # QModem 使用官方 master，其余方案使用 VIKINGYFY/owrt
           - CONFIG: H5000M-qmodem-next
             SOURCE: immortalwrt/immortalwrt
             BRANCH: master
@@ -38,13 +38,10 @@ jobs:
           - CONFIG: H5000M-modem-pro
             SOURCE: VIKINGYFY/immortalwrt
             BRANCH: owrt
-          - CONFIG: AP3000M-qmodem-next
-            SOURCE: immortalwrt/immortalwrt
-            BRANCH: master
-          - CONFIG: AP3000M-qmodem
-            SOURCE: immortalwrt/immortalwrt
-            BRANCH: master
-          - CONFIG: AP3000M-modem-pro
+          - CONFIG: H5000M-mt5700
+            SOURCE: VIKINGYFY/immortalwrt
+            BRANCH: owrt
+          - CONFIG: H5000M-mt5700m
             SOURCE: VIKINGYFY/immortalwrt
             BRANCH: owrt
 
@@ -57,4 +54,4 @@ jobs:
       WRT_SOURCE: ${{ matrix.SOURCE }}
 
       WRT_PACKAGE: ${{ inputs.PACKAGE }}
-      WRT_TEST: 'false'
+      WRT_TEST: ${{ toJSON(false) }}

@@ -18,13 +18,10 @@ on:
           - H5000M-qmodem-next
           - H5000M-qmodem
           - H5000M-modem-pro
-          - AP3000M-qmodem-next
-          - AP3000M-qmodem
-          - AP3000M-modem-pro
-          - X86-qmodem-next
-          - X86-qmodem
+          - H5000M-mt5700
+          - H5000M-mt5700m
       SOURCE:
-        description: '源码仓库（分支自动匹配；X86 固定 immortalwrt/master）'
+        description: '源码仓库（分支自动匹配）'
         default: 'immortalwrt/immortalwrt'
         required: true
         type: choice
@@ -47,7 +44,7 @@ permissions: write-all
 
 # CI 任务
 jobs:
-  # 按机型与所选源码仓库自动推导「源码 + 分支」，避免仓库与分支手动组合出错
+  # 按所选源码仓库自动推导分支，避免仓库与分支手动组合出错
   resolve:
     name: Resolve Source
     # 与 WRT-CORE 保持一致，统一使用 Ubuntu 26.04
@@ -62,32 +59,27 @@ jobs:
           SOURCE: ${{ inputs.SOURCE }}
           CONFIG: ${{ inputs.CONFIG }}
         run: |
-          # X86 固定使用 immortalwrt 主线 master，不受 SOURCE 选择影响
-          if [[ "$CONFIG" == X86-* ]]; then
-            RESOLVED_SOURCE=immortalwrt/immortalwrt
-            BRANCH=master
-            if [[ "$SOURCE" != "$RESOLVED_SOURCE" ]]; then
-              echo "::warning title=X86 源码已固定::X86 配置仅使用 immortalwrt/immortalwrt master，已忽略所选 '$SOURCE'"
-            fi
-          else
-            RESOLVED_SOURCE="$SOURCE"
-            case "$SOURCE" in
-              immortalwrt/immortalwrt)
-                BRANCH=master
-                ;;
-              chasey-dev/immortalwrt-mt798x-rebase)
-                BRANCH=25.12
-                ;;
-              VIKINGYFY/immortalwrt)
-                # 该仓库同时提供 main 与 owrt：MTK 机型（H5000M / AP3000M）走 owrt
-                BRANCH=owrt
-                ;;
-              *)
-                echo "::error title=Unsupported source::未知源码仓库 '$SOURCE'"
-                exit 1
-                ;;
-            esac
-          fi
+          case "$CONFIG" in
+            H5000M-qmodem-next|H5000M-qmodem|H5000M-modem-pro|H5000M-mt5700|H5000M-mt5700m) ;;
+            *) echo "::error title=Unsupported configuration::不支持的 H5000M 配置 '$CONFIG'"; exit 1 ;;
+          esac
+
+          RESOLVED_SOURCE="$SOURCE"
+          case "$SOURCE" in
+            immortalwrt/immortalwrt)
+              BRANCH=master
+              ;;
+            chasey-dev/immortalwrt-mt798x-rebase)
+              BRANCH=25.12
+              ;;
+            VIKINGYFY/immortalwrt)
+              BRANCH=owrt
+              ;;
+            *)
+              echo "::error title=Unsupported source::未知源码仓库 '$SOURCE'"
+              exit 1
+              ;;
+          esac
 
           echo "source=$RESOLVED_SOURCE" >> "$GITHUB_OUTPUT"
           echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
@@ -101,13 +93,13 @@ jobs:
     with:
       # 编译配置
       WRT_CONFIG: ${{ inputs.CONFIG }}
-      # 源码链接（X86 固定 immortalwrt，其余按所选仓库）
+      # 源码链接
       WRT_REPO: https://github.com/${{ needs.resolve.outputs.source }}.git
-      # 源码分支（由 resolve 任务按机型与仓库自动推导）
+      # 源码分支（由 resolve 任务按仓库自动推导）
       WRT_BRANCH: ${{ needs.resolve.outputs.branch }}
       # 源码名称
       WRT_SOURCE: ${{ needs.resolve.outputs.source }}
       # 插件调整
       WRT_PACKAGE: ${{ inputs.PACKAGE }}
       # 仅输出配置文件
-      WRT_TEST: ${{ inputs.TEST }}
+      WRT_TEST: ${{ toJSON(inputs.TEST) }}

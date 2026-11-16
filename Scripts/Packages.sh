@@ -61,11 +61,15 @@ UPDATE_PACKAGE() {
 		# -exec 的结束符。写成 `-exec cp -rf {} ./ +` 时 "+" 只是 cp 的普通参数，
 		# find 读完所有参数仍找不到结束符，直接报 "missing argument to `-exec'"
 		# 并以非零退出；此前没有 set -e 时该错误被忽略（目录实际没被拷贝），
-		# 现在会中断整个 Custom Packages 步骤（run #133 三个 AP3000M job 即此因）。
+		# 现在会中断整个 Custom Packages 步骤。
 		find "./$REPO_NAME/" -mindepth 1 -maxdepth 1 -type d -exec cp -rf {} ./ \;
 		rm -rf "./$REPO_NAME/"
 	fi
 }
+
+PROFILE_SCRIPT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/H5000M-Profiles.sh"
+. "$PROFILE_SCRIPT"
+h5000m_profile "${WRT_CONFIG:?WRT_CONFIG is required}"
 
 # 调用示例
 # UPDATE_PACKAGE "OpenAppFilter" "destan19/OpenAppFilter" "master" "" "custom_name1 custom_name2"
@@ -174,7 +178,7 @@ FIX_QMODEM_VERSION() {
 # 已将它们设为 n，但克隆与 feed 注册仍会污染包索引、增加扫描时间，并可能在
 # 上游依赖变化时被意外选中（例如 qmodem-generic 的 DEPENDS:=+qmodem）。
 # 因此在源头按配置隔离，Modem Pro 构建完全不接触 QModem 仓库。
-if [[ "${WRT_CONFIG:-}" != *modem-pro ]]; then
+if [[ "$WRT_VARIANT" == qmodem || "$WRT_VARIANT" == qmodem-next ]]; then
 	# 所有 QModem 变体共用核心脚本包；前端由 QMODEM*.txt 选择
 	UPDATE_PACKAGE "qmodem" "FUjr/QModem" "main"
 	REGISTER_QMODEM_FEED
@@ -183,17 +187,17 @@ if [[ "${WRT_CONFIG:-}" != *modem-pro ]]; then
 	# 通用 QModem 管理界面（依赖 qmodem 核心），Modem Pro 配置不编入
 	UPDATE_PACKAGE "luci-app-qmodem-generic" "LianXia233/luci-app-qmodem-generic" "main"
 else
-	echo "modem-pro: 跳过 QModem 克隆、feed 注册与 luci-app-qmodem-generic（隔离 QModem 依赖链）"
+	echo "$WRT_VARIANT: 跳过 QModem 克隆、feed 注册与通用界面（隔离模组管理依赖）"
 fi
 
-# ===== modem-pro-unified：单一包 modem-pro（H5000M / AP3000M 共用，替代 QModem 模组管理）=====
+# ===== modem-pro-unified：单一包 modem-pro（H5000M，替代 QModem 模组管理）=====
 # 仓库顶层即唯一 Makefile，包位于 feed 根目录。但 OpenWrt 的 scripts/feeds 扫描要求包
 # Makefile 位于 feed 的【子目录】下（feed_dir/<pkg>/Makefile）——直接用 src-link 指向
 # 仓库根时，scan.mk 的路径截断逻辑会把 `call BuildPackage` 的 grep 输出误当包路径，
 # 报 "target pattern contains no '%'"，install 阶段也找不到包（No feed for package）。
 # 故先把克隆目录整理成一个规范 feed：feed 根 ../modem-pro-feed 下放 modem-pro/ 子目录，
 # 再以 src-link 注册（feed 名只允许 [A-Za-z0-9_]，故用 modem_pro）。
-# 仅 *-modem-pro 配置引入：其余机型继续使用 QModem，无需拉取（省一次克隆与包扫描）。
+# 仅 *-modem-pro 配置引入；两套 QModem 变体无需拉取。
 if [[ "${WRT_CONFIG:-}" == *modem-pro ]]; then
 	UPDATE_PACKAGE "modem-pro-unified" "LianXia233/modem-pro-unified" "main"
 
@@ -249,12 +253,12 @@ UPDATE_PACKAGE "quickfile" "sbwml/luci-app-quickfile" "main"
 UPDATE_PACKAGE "timecontrol" "sirpdboy/luci-app-timecontrol" "main"
 UPDATE_PACKAGE "viking" "VIKINGYFY/packages" "main" "" "axonhub gecoosac miniupnpd sing-box luci-app-homeproxy luci-app-timewol luci-app-upnp luci-app-wolplus luci-app-wolultra"
 
-# ===== sing-box 过时补丁清理（2026-09-24 MTK-AUTO / OWRT-ALL 同时失败根因）=====
+# ===== sing-box 过时补丁清理（2026-09-24 定时构建失败根因）=====
 # VIKINGYFY/packages 的 sing-box 自带 patches/100-fix-dns-tcp-close.patch，它是针对
 # 旧版 sing-box 的反向移植（引入上游从未合入的 HandleStreamDNSConnection）。当 feed 把
 # sing-box 升到 1.15.0_alpha8 后，该补丁上下文已与上游源码（仍是 HandleStreamDNSRequest）
 # 不匹配，OpenWrt 在 Build/Prepare 阶段应用补丁报 "Patch failed!" 并 Error 1，
-# 进而令整个固件编译中断（今日 MTK-AUTO 与 OWRT-ALL 两个定时构建同时失败即此因）。
+# 进而令整个固件编译中断。
 # 上游 immortalwrt/packages 的 sing-box 根本不携带该补丁也能正常构建，故这里在补丁确为
 # 旧版（内容含 HandleStreamDNSConnection）时移除它，恢复构建。若 VIKINGYFY 后续刷新该补丁
 # 为适配新源码的版本，本规则因标记不匹配而自动跳过，不会误删新版补丁。
@@ -272,14 +276,12 @@ FIX_SINGBOX_STALE_PATCH() {
 FIX_SINGBOX_STALE_PATCH
 
 # FAN789 插件及其他专用硬件插件
-UPDATE_PACKAGE "luci-app-h5000m-fancontrol" "FAN789/luci-app-h5000m-fancontrol" "main"
-# AirPi AP3000M 专用（luci-app-airpi-fancontrol + airpi-gpio-fan 内核模块）：
-# 仅 AP3000M 配置引入。该插件按 AP3000M 的 GPIO / PWM / 温度传感器适配，
-# H5000M 与 X86 用不到，也不具备对应硬件依赖，无需拉取（省一次克隆与包扫描）
-if [[ "${WRT_CONFIG:-}" == *AP3000M* ]]; then
-	UPDATE_PACKAGE "luci-app-airpi-fancontrol" "LianXia233/luci-app-airpi3000m-fancontrol" "main" "all"
-fi
-UPDATE_PACKAGE "luci-app-mt5700m" "LianXia233/luci-app-mt5700m" "main"
+UPDATE_PACKAGE "luci-app-h5000m-fancontrol" "$H5000M_FANCONTROL_REPO" "main"
+case "$WRT_VARIANT" in
+	mt5700) UPDATE_PACKAGE "luci-app-mt5700" "LianXia233/luci-app-mt5700" "main" ;;
+	mt5700m) UPDATE_PACKAGE "luci-app-mt5700m" "FAN789/luci-app-mt5700m" "main" ;;
+esac
+bash "$(dirname "$PROFILE_SCRIPT")/Prepare-Device-Packages.sh" "$WRT_CONFIG" "$(pwd)/.."
 UPDATE_PACKAGE "luci-app-h5000m-netmode" "LianXia233/luci-app-h5000m-netmode" "main"
 
 # ===== luci-app-h5000m-netmode 的 src/ 目录清理（2026-09-29 MTK-AUTO #100 全矩阵失败根因）=====

@@ -57,14 +57,14 @@ jobs:
 
           # 2. 若开启 keep_latest，计算每个机型需保留的最新 Release id
           #    机型以 Config/*.txt 中的固件配置名为准（H5000M-qmodem、H5000M-qmodem-next、
-          #    H5000M-modem-pro、X86-qmodem……），按最长前缀匹配，避免
+          #    H5000M-modem-pro），按最长前缀匹配，避免
           #    "H5000M-qmodem" 抢先匹配 "H5000M-qmodem-next"。
           #    旧实现按 "-immortalwrt-" 切分：Modem Pro 的 "-VIKINGYFY-owrt-" 与
           #    chasey-dev 的标签无法切分，每个标签会各自成组，keep-latest 形同失效。
           KEEP_IDS=""
           if [ "${KEEP_LATEST}" = "true" ]; then
             mapfile -t CONFIGS < <(
-              grep -lE '^CONFIG_TARGET_(DEVICE_[A-Za-z0-9_]+|x86)=y' Config/*.txt 2>/dev/null \
+              grep -lE '^CONFIG_TARGET_DEVICE_mediatek_filogic_DEVICE_hiveton_h5000m=y' Config/H5000M-*.txt 2>/dev/null \
                 | xargs -r -n1 basename \
                 | sed 's/\.txt$//' \
                 | awk '{ print length($0) "\t" $0 }' | sort -rn | cut -f2-
@@ -85,8 +85,8 @@ jobs:
                 esac
               done
               if [ -z "$CFG" ]; then
-                # 未知/历史标签：按去掉日期后缀的整串分组，宁可多保留也不误删
-                CFG="${RTAG%-[0-9][0-9].[0-9][0-9].[0-9][0-9]-*}"
+                # 已移除配置及未知标签不参与当前配置的 keep-latest 保留。
+                continue
               fi
               if [ -z "${SEEN_CFG[$CFG]:-}" ]; then
                 SEEN_CFG[$CFG]="$RID"
