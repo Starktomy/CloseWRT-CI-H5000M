@@ -17,6 +17,11 @@ on:
         description: '手动追加插件包（多行请用换行隔开）'
         required: false
         type: string
+      TEST:
+        description: '仅检查五套插件与配置，不编译固件'
+        required: false
+        default: false
+        type: boolean
 
 permissions: write-all
 
@@ -28,22 +33,22 @@ jobs:
       matrix:
         include:
           # H5000M：Next / 传统版 / Modem Pro / MT5700 / MT5700M
-          # QModem 使用官方 master，其余方案使用 VIKINGYFY/owrt
+          # 五套方案统一使用 H5000M 对应的厂商 Wi-Fi 7 SDK 分支。
           - CONFIG: H5000M-qmodem-next
-            SOURCE: immortalwrt/immortalwrt
-            BRANCH: master
+            SOURCE: chasey-dev/immortalwrt-mt798x-rebase
+            BRANCH: 25.12-dev-wifi7
           - CONFIG: H5000M-qmodem
-            SOURCE: immortalwrt/immortalwrt
-            BRANCH: master
+            SOURCE: chasey-dev/immortalwrt-mt798x-rebase
+            BRANCH: 25.12-dev-wifi7
           - CONFIG: H5000M-modem-pro
-            SOURCE: VIKINGYFY/immortalwrt
-            BRANCH: owrt
+            SOURCE: chasey-dev/immortalwrt-mt798x-rebase
+            BRANCH: 25.12-dev-wifi7
           - CONFIG: H5000M-mt5700
-            SOURCE: VIKINGYFY/immortalwrt
-            BRANCH: owrt
+            SOURCE: chasey-dev/immortalwrt-mt798x-rebase
+            BRANCH: 25.12-dev-wifi7
           - CONFIG: H5000M-mt5700m
-            SOURCE: VIKINGYFY/immortalwrt
-            BRANCH: owrt
+            SOURCE: chasey-dev/immortalwrt-mt798x-rebase
+            BRANCH: 25.12-dev-wifi7
 
     uses: ./.github/workflows/WRT-CORE.yml
     with:
@@ -54,4 +59,4 @@ jobs:
       WRT_SOURCE: ${{ matrix.SOURCE }}
 
       WRT_PACKAGE: ${{ inputs.PACKAGE }}
-      WRT_TEST: ${{ toJSON(false) }}
+      WRT_TEST: ${{ toJSON(inputs.TEST || false) }}

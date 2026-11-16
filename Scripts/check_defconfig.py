@@ -65,6 +65,39 @@ class Checker:
         if value == "y":
             self.errors.append(f"{symbol} 不应编入固件，实际为 y（{reason}）")
 
+    def check_mtk_wifi7(self):
+        for name in (
+            "kmod-mt_wifi7", "kmod-mt_wifi_osal", "kmod-mt_hwifi", "kmod-mt7992",
+            "kmod-mediatek_hnat", "kmod-warp", "kmod-mt798x-2p5g-phy",
+            "mtwifi-cfg-ucode", "iwinfo-ucode", "wifi-profile", "hnat-detect",
+            "luci-app-mtwifi-cfg", "luci-app-turboacc-mtk", "wpad-openssl",
+            "kmod-usb-net-qmi-wwan", "kmod-usb-net-cdc-mbim",
+            "kmod-usb-net-cdc-ether", "kmod-usb-net-cdc-ncm", "kmod-usb-net-rndis",
+        ):
+            self.require(f"CONFIG_PACKAGE_{name}", "H5000M SDK 无线、加速与 USB 5G 配套")
+        for name in (
+            "kmod-mt76", "kmod-mt76-core", "kmod-mt76-connac", "kmod-mt7996e",
+            "kmod-mt7992-23-firmware", "kmod-mt_wifi", "kmod-mt_wifi_cmn",
+            "mtwifi-cfg", "iwinfo", "luci-app-turboacc",
+        ):
+            symbol = f"CONFIG_PACKAGE_{name}"
+            if self.actual.get(symbol) in ("y", "m"):
+                self.errors.append(f"{symbol} 与所选 SDK 无线/加速栈冲突")
+        for symbol, expected in {
+            "CONFIG_WARP_CONFIG_MODE": "1",
+            "CONFIG_WARP_VERSION": '"3_1"',
+            "CONFIG_WARP_CHIPSET": '"mt7987"',
+            "CONFIG_MTK_HWIFI_MT7992_RRO_MODE": "5",
+            "CONFIG_MTK_WIFI7_SKU_TYPE": '"BE6500"',
+            "CONFIG_first_card_name": '"MT7992"',
+            "CONFIG_first_card_profile_path": '"/etc/wireless/mediatek/mt7992.6500.1.dat"',
+            "CONFIG_first_card_EEPROM_offset": '"0x0"',
+            "CONFIG_first_card_EEPROM_size": '"0x1e00"',
+            "CONFIG_first_card_EEPROM_def_bin_path": '"/lib/firmware/e2p"',
+        }.items():
+            if self.actual.get(symbol) != expected:
+                self.errors.append(f"{symbol} 应为 {expected}，实际为 {self.actual.get(symbol, '<缺失>')}")
+
     def check_requested(self):
         dropped = []
         for symbol, value in self.requested.items():
@@ -97,7 +130,7 @@ class Checker:
         if self.variant in ("mt5700", "mt5700m"):
             self.require(f"CONFIG_PACKAGE_luci-app-{self.variant}", "所选独立模组管理插件")
             self.require(f"CONFIG_PACKAGE_luci-i18n-{self.variant}-zh-cn", "配套中文翻译")
-            self.require("CONFIG_PACKAGE_input-support", "USB 设备兼容门控")
+            self.require("CONFIG_PACKAGE_kmod-input-core", "USB 输入设备支持")
             self.require("CONFIG_PACKAGE_kmod-usb-serial-option", "模组 AT 串口")
             self.require("CONFIG_PACKAGE_kmod-usb-net-cdc-ncm", "蜂窝 NCM 数据接口")
             self.require("CONFIG_PACKAGE_odhcp6c", "蜂窝 IPv6")
@@ -119,8 +152,8 @@ class Checker:
         if self.variant == "modem-pro":
             self.require("CONFIG_PACKAGE_modem-pro", "Modem Pro 唯一模组管理包")
             self.require("CONFIG_MODEM_PRO_HOST_RUST", "宿主 rustup 直编开关")
-            self.require("CONFIG_PACKAGE_input-support", "USB 串口 / HID 特性门控")
-            self.require("CONFIG_PACKAGE_audio-support", "音频设备特性门控")
+            self.require("CONFIG_PACKAGE_kmod-input-core", "USB 输入设备支持")
+            self.require("CONFIG_PACKAGE_kmod-usb-audio", "USB 音频设备支持")
             self.require("CONFIG_PACKAGE_kmod-usb-net-qmi-wwan", "Modem Pro QMI 拨号")
 
             qmodem_symbols = [
@@ -150,8 +183,8 @@ class Checker:
             ("CONFIG_PACKAGE_kmod-usb-acm", "QModem 硬依赖"),
             ("CONFIG_PACKAGE_kmod-usb-serial-qualcomm", "QModem 硬依赖"),
             ("CONFIG_PACKAGE_kmod-usb-serial-option", "模组 AT 串口"),
-            ("CONFIG_PACKAGE_input-support", "input/HID 特性门控"),
-            ("CONFIG_PACKAGE_audio-support", "音频类特性门控（kmod-sound-core/usb-audio 依赖）"),
+            ("CONFIG_PACKAGE_kmod-input-core", "USB 输入设备支持"),
+            ("CONFIG_PACKAGE_kmod-usb-audio", "USB 音频设备支持"),
             ("CONFIG_PACKAGE_ubus-at-daemon", "QModem AT ubus 守护进程"),
             ("CONFIG_PACKAGE_sms-tool", "短信工具"),
             ("CONFIG_PACKAGE_sms-tool_q", "QModem 短信工具"),
@@ -203,6 +236,7 @@ class Checker:
         self.check_requested()
         self.check_variant()
         self.check_device()
+        self.check_mtk_wifi7()
         return self.errors
 
 

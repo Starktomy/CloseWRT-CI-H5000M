@@ -7,6 +7,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 h5000m_profile "${1:?configuration is required}"
 BUILD_ROOT="$(cd "${2:?OpenWrt directory is required}" && pwd)"
 
+H5000M_SDK_SOURCE="$BUILD_ROOT" python3 -m unittest discover -s "$SCRIPT_DIR/../tests" -v
+
 if [ "$H5000M_RUST_FAN" = 1 ]; then
 	(
 		cd "$BUILD_ROOT/package/luci-app-h5000m-fancontrol"

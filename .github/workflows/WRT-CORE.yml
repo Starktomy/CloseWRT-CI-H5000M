@@ -194,6 +194,12 @@ jobs:
 
       - name: Initialization Values
         run: |
+          if [ "$WRT_SOURCE" != chasey-dev/immortalwrt-mt798x-rebase ] || \
+             [ "$WRT_BRANCH" != 25.12-dev-wifi7 ] || \
+             [ "$WRT_REPO" != https://github.com/chasey-dev/immortalwrt-mt798x-rebase.git ]; then
+            echo '::error::本仓库仅支持 chasey-dev/immortalwrt-mt798x-rebase @ 25.12-dev-wifi7'
+            exit 1
+          fi
           . "$GITHUB_WORKSPACE/Scripts/H5000M-Profiles.sh"
           h5000m_profile "$WRT_CONFIG"
           for VAR in WRT_VARIANT WRT_VARIANT_CONFIG H5000M_FANCONTROL_REPO H5000M_RUST_FAN; do
@@ -275,6 +281,9 @@ jobs:
           git clone --depth=1 --single-branch --branch "$WRT_BRANCH" "$WRT_REPO" ./wrt/
 
           cd ./wrt/ && echo "WRT_HASH=$(git log -1 --pretty=format:'%h')" >> $GITHUB_ENV
+
+          test -f package/mtk/drivers/mt_wifi7/Makefile
+          test -f defconfig/low-mem-512m/mt7987-mt7992-be7200.config
 
           # GitHub Action 移除国内下载源
           PROJECT_MIRRORS_FILE="./scripts/projectsmirrors.json"
@@ -447,7 +456,8 @@ jobs:
           cd ./wrt/
 
           VARIANT_FILE="$GITHUB_WORKSPACE/Config/$WRT_VARIANT_CONFIG"
-          cat "$WRT_CONFIG_FILE" "$GITHUB_WORKSPACE/Config/GENERAL.txt" >> .config
+          cat "$WRT_CONFIG_FILE" "$GITHUB_WORKSPACE/Config/GENERAL.txt" \
+            "$GITHUB_WORKSPACE/Config/H5000M-MTK-WIFI7.txt" >> .config
           if [ "$WRT_VARIANT" = mt5700 ] || [ "$WRT_VARIANT" = mt5700m ]; then
             cat "$GITHUB_WORKSPACE/Config/MODEM-STANDALONE.txt" >> .config
           fi
@@ -479,6 +489,18 @@ jobs:
             --requested .config.requested \
             --variant "$WRT_VARIANT" \
             --name "$WRT_CONFIG"
+
+      - name: Upload Verified Config
+        if: env.WRT_TEST == 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: config-${{ env.WRT_CONFIG }}-${{ github.run_attempt }}
+          path: |
+            ./wrt/.config
+            ./wrt/.config.requested
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 7
 
       - name: Download Packages
         if: env.WRT_TEST != 'true'
@@ -799,6 +821,9 @@ jobs:
             模组方案：${{env.WRT_VARIANT}}
             模组插件版本：${{env.H5000M_MODEM_VERSION}}
             风扇插件：${{env.H5000M_FANCONTROL_VERSION}}
+
+            无线驱动：MediaTek SDK mt_wifi7（MT7992）
+            转发加速：SDK HNAT / MT7987 WARP 3.1（USB 模式须以实机绑定计数确认）
 
             源码：${{env.WRT_REPO}}
             分支：${{env.WRT_BRANCH}}

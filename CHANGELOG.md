@@ -1,3 +1,13 @@
+## 2026-11-16：独立 H5000M 厂商 Wi-Fi 7 SDK 项目
+
+- 基于 OpenWRT-CI-H5000M 的五套方案建立 CloseWRT-CI-H5000M，参考 VIKINGYFY/CloseWRT-CI。
+- 五套统一使用 chasey-dev/immortalwrt-mt798x-rebase 的 25.12-dev-wifi7 分支。
+- 新增 H5000M 专用 MT7992 / BE6500、WARP 3.1、RRO、HNAT、ucode 配置与配置断言。
+- 无线默认值注入实际 ucode 生成器；初始化关闭标准 flowtable/PPE 卸载，选择 SDK HNAT。
+- 下载页和在线升级改用独立仓库；保留既定模组管理和风扇选择。
+- 本地通过五套实际 defconfig、误配拒绝、6 项无线/HNAT 测试、上游插件测试、actionlint、OTA 与下载页检查；完整固件编译由 CI 验证。
+- 硬件运行与 USB 模式下的实际加速仍需实机验证。
+
 # 更新日志
 
 本文件保留 H5000M 与公共构建流程的维护记录，完整历史可查 Git 提交。
@@ -24,7 +34,7 @@
 - 构建核心、OTA 和下载页只接入受支持的配置，下载页过滤其他配置的历史 Release。
 - 固件只发布 Sysupgrade/Factory，Rust 后端只构建 aarch64 目标。
 - 无线默认参数合并为一套 H5000M EHT 配置，文档与维护记录同步清理。
-- 发布仓库改为 Starktomy/OpenWRT-CI-H5000M，下载页、OTA 默认源与文档链接同步更新。
+- 发布仓库改为 Starktomy/CloseWRT-CI-H5000M，下载页、OTA 默认源与文档链接同步更新。
 - 修正 TEST 参数的布尔值到字符串转换，匹配可复用核心工作流的输入类型。
 - 本地验证通过：工作流与脚本语法、源码选择、OTA 预设、无线默认值、固件打包、
   Release 保留分组和下载页过滤；未执行完整固件编译。

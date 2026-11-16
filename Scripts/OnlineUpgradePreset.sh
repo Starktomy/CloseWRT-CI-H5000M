@@ -36,7 +36,7 @@ WRT_INFO="${WRT_INFO:-}"
 WRT_BRANCH="${WRT_BRANCH:-}"
 TARGET="./files/etc/config/online-upgrade"
 # 与 GitHub 上的仓库名大小写保持一致（API 不区分大小写，预设里不留歧义）
-UPGRADE_REPO="${ONLINE_UPGRADE_SOURCE_REPO:-Starktomy/OpenWRT-CI-H5000M}"
+UPGRADE_REPO="${ONLINE_UPGRADE_SOURCE_REPO:-Starktomy/CloseWRT-CI-H5000M}"
 
 # 包未选中时不生成预设：文件会随 files/ 打进固件，但设备上没有对应软件，
 # 只会留下一个没人读的配置。Config/GENERAL.txt 默认选中它，这里只是防御。
@@ -124,7 +124,7 @@ if [[ ! "$SAMPLE" =~ $PATTERN ]]; then
 	echo "::error::firmware_pattern 未匹配示例产物 ${SAMPLE}（规则=${PATTERN}）"
 	exit 1
 fi
-SAMPLE_TAG="${WRT_CONFIG}-${WRT_INFO}-${WRT_BRANCH:-master}-26.11.09-08.31.52"
+SAMPLE_TAG="${WRT_CONFIG}-${WRT_INFO}-${WRT_BRANCH:-25.12-dev-wifi7}-26.11.09-08.31.52"
 if [[ ! "$SAMPLE_TAG" =~ ${TAG#latest@} ]]; then
 	echo "::error::tag 正则未匹配示例标签 ${SAMPLE_TAG}（规则=${TAG}）"
 	exit 1

@@ -105,10 +105,8 @@ CONFIG_PACKAGE_kmod-inet-mptcp-diag=y
 CONFIG_PACKAGE_kmod-netlink-diag=y
 CONFIG_PACKAGE_kmod-nf-nat6=y
 CONFIG_PACKAGE_kmod-ovpn-backports=y
-# kmod-sound-core / kmod-usb-audio 在 ImmortalWrt 中 depends on audio-support
-# 特性门控包；不启用它时这两个 =y 会在 defconfig 阶段被静默丢弃。
-# audio-support 本身只创建 audio 组并安装 hotplug 规则，体积可忽略。
-CONFIG_PACKAGE_audio-support=y
+# SDK 25.12 使用实际驱动包，不包含主线新增的 hardware-support 门控包。
+CONFIG_PACKAGE_kmod-input-core=y
 CONFIG_PACKAGE_kmod-sound-core=y
 
 # 内核模块 - USB 设备

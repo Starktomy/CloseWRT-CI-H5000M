@@ -87,6 +87,10 @@ UPDATE_PACKAGE "vantage" "anothaDev/luci-theme-vantage" "main"
 
 UPDATE_PACKAGE "momo" "nikkinikki-org/OpenWrt-momo" "main"
 UPDATE_PACKAGE "nikki" "nikkinikki-org/OpenWrt-nikki" "main"
+# 参考 CloseWRT-CI：单侧冲突声明已足够，双侧声明会使 SDK Kconfig 递归依赖。
+if [ -f ./OpenWrt-nikki/mihomo-alpha/Makefile ]; then
+	sed -i '/^  CONFLICTS:=mihomo-meta$/d' ./OpenWrt-nikki/mihomo-alpha/Makefile
+fi
 UPDATE_PACKAGE "openclash" "vernesong/OpenClash" "dev" "pkg"
 UPDATE_PACKAGE "passwall" "Openwrt-Passwall/openwrt-passwall" "main" "pkg"
 UPDATE_PACKAGE "passwall2" "Openwrt-Passwall/openwrt-passwall2" "main" "pkg"
@@ -181,6 +185,10 @@ FIX_QMODEM_VERSION() {
 if [[ "$WRT_VARIANT" == qmodem || "$WRT_VARIANT" == qmodem-next ]]; then
 	# 所有 QModem 变体共用核心脚本包；前端由 QMODEM*.txt 选择
 	UPDATE_PACKAGE "qmodem" "FUjr/QModem" "main"
+	# SDK 自带 ndisc6；在注册 feed 前移除 QModem 的同名副本。
+	if [ -d ./mtk/applications/ndisc ] && [ -d ./QModem/application/ndisc6 ]; then
+		rm -rf ./QModem/application/ndisc6
+	fi
 	REGISTER_QMODEM_FEED
 	FIX_QMODEM_VERSION
 
@@ -307,6 +315,14 @@ FIX_H5000M_NETMODE_SRC() {
 	fi
 }
 FIX_H5000M_NETMODE_SRC
+
+# 参考 CloseWRT-CI：显式选择 WeeChat provider，兼容 25.12 的虚拟依赖生成器。
+WEECHAT_APP=../feeds/luci/applications/luci-app-weechat/Makefile
+WEECHAT_CORE=../feeds/packages/net/weechat/Makefile
+if [ -f "$WEECHAT_APP" ] && [ -f "$WEECHAT_CORE" ] && \
+   grep -q '^define Package/weechat-minimal$' "$WEECHAT_CORE"; then
+	sed -i 's/ +weechat / +!PACKAGE_weechat-full:weechat-minimal +PACKAGE_weechat-full:weechat-full /g' "$WEECHAT_APP"
+fi
 
 # 在线升级插件（luci-app-online-upgrade v2）不在这里接入：
 # 它由 Scripts/Packages-OnlineUpgrade.sh 在 WRT-CORE 的独立步骤里 clone 到
