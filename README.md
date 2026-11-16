@@ -64,3 +64,11 @@ CI 在编译前验证五套方案互斥、USB 驱动、SDK 无线栈、WARP/RRO 
 - MT5700M：[FAN789/luci-app-mt5700m](https://github.com/FAN789/luci-app-mt5700m)
 
 CI 仓库采用 MIT 许可，保留原作者版权信息；第三方组件许可不变。
+
+## H5000M 统一 OTA
+
+客户端由 [H5000M-OTA](https://github.com/Starktomy/H5000M-OTA) 子目录导入，支持驱动、五套方案和历史版本选择。构建期将真实身份写入 `/usr/share/h5000m/firmware.json`。
+
+同驱动＋同模组方案可选保留配置（默认清空）；跨驱动、跨方案或当前身份未知时必须清空。后端强制执行，重装或切换历史版本也不能跳过 SHA256 和机型检查。稳定版复制到 OTA 仓库 Releases 长期保存。
+
+此前已发布的固件未包含本次客户端改造，首次迁移请取消保留配置并刷入新版。
