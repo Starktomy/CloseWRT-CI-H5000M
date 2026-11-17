@@ -27,7 +27,7 @@
 - 加速：`kmod-mediatek_hnat`、WARP 3.1、RRO mode 5、`hnat-detect`、TurboACC MTK。首次启动关闭标准 `flow_offloading` / `flow_offloading_hw`，由 SDK HNAT 管理 PPE。
 - USB 5G：保留通用 QMI、MBIM、ECM、NCM、RNDIS 和 AT 串口驱动；不混装提供同名模块的厂商 QMI 驱动。
 
-SDK 无线配置位于 `Config/H5000M-MTK-WIFI7.txt`，从上游 MT7987/MT7992 示例提取 SDK 部分，设备仅选择 H5000M。使用 2+3 的 BE6500 DAT，eMMC `factory` 分区 offset 0、长度 `0x1e00` 对齐设备树；读取本机校准数据，不随固件分发其他设备 EEPROM。射频链路、FEM、MAC 与实际性能仍需实机验证。
+SDK 无线配置位于 `Config/H5000M-MTK-WIFI7.txt`，从上游 MT7987/MT7992 示例提取 SDK 部分，设备仅选择 H5000M。使用 H5000M 原厂对应的 BE5040 iPAiLNA DAT 与备用 EEPROM。eMMC `factory` offset 0 读取 `0x1e00` 字节，校验大小和 MT7992 标识后优先使用；空分区、全零、全 FF 或错误芯片时，使用 SDK 自带的 `MT7991_MT7976_EEPROM_BE5040_iPAiLNA.bin`，只写入根文件系统的 `/lib/firmware/e2p`，不修改 factory 分区。S07 初始化先于 S10 无线模块加载。该默认 EEPROM 的来源见 [H5000M 上游移植记录](https://github.com/openwrt/openwrt/pull/21398)。射频与实际启动仍须实机验证。
 
 这里的“CloseWRT”指厂商 SDK 驱动方案。系统、驱动源码、芯片二进制固件和插件分别遵守其自身许可证。
 
@@ -54,7 +54,7 @@ SDK 无线配置位于 `Config/H5000M-MTK-WIFI7.txt`，从上游 MT7987/MT7992 �
 
 CI 在编译前验证五套方案互斥、USB 驱动、SDK 无线栈、WARP/RRO 参数、L1 profile 和风扇插件。新版风扇与 MT5700 后端由宿主 Rust 交叉编译，检查为静态 aarch64 ELF，再交给 OpenWrt 打包。
 
-构建通过证明配置、编译和打包成功。无线射频、风扇转速、USB 5G 拨号和 HNAT 实际卸载需在 H5000M 上测试。USB 以太网帧模式与 QMI/MBIM raw-IP 的路径不同，不能仅凭模块加载宣称全部获得硬件卸载；应检查双向 FOE/BIND 计数、CPU 占用与吞吐。`hnat-detect` 负责原生端口、外部接口和 `rxppd` 的配套配置。
+发布前还会拆开实际镜像检查 H5000M FIT 机型、6.12 内核加载地址、eMMC 启动参数、BE5040 EEPROM、S07 初始化脚本，以及 Samba4 排除。构建和这些检查通过证明镜像结构及打包配套正确。无线射频、风扇转速、USB 5G 拨号和 HNAT 实际卸载需在 H5000M 上测试。USB 以太网帧模式与 QMI/MBIM raw-IP 的路径不同，不能仅凭模块加载宣称全部获得硬件卸载；应检查双向 FOE/BIND 计数、CPU 占用与吞吐。`hnat-detect` 负责原生端口、外部接口和 `rxppd` 的配套配置。
 
 ## 来源与许可
 
@@ -76,3 +76,11 @@ CI 仓库采用 MIT 许可，保留原作者版权信息；第三方组件许可
 此前已发布的固件未包含本次客户端改造，首次迁移请取消保留配置并刷入新版。
 
 全部五套方案默认不安装 Samba4（服务、客户端、工具和 LuCI 页面）；构建检查会拒绝额外配置或依赖重新选入 Samba4。
+
+## SDK 启动排查（2026-11-17）
+
+用户反馈旧 SDK 五套均无法启动；现已纠正 BE6500/BE5040 与 EEPROM 回退配置。SDK 的 `factory` 可能本就为空，不能把“分区存在”当作“有有效校准数据”。旧配置还把输出文件 `e2p` 作为自身回退路径，驱动遇到空数据后再次读取同一个无效文件。
+
+参考 CloseWRT-CI 当前只包含 MT7981/MT7986，不能据此认定 H5000M 已完成实机适配。保留 SDK 6.12 自己的内核加载地址 `0x40000000` 与 kernel/rootfs eMMC 布局；不照搬 Padavan 6.6 的 `0x40080000`。补齐显式串口参数 `console=ttyS0,115200n8`，便于取得启动日志。
+
+这些是源码和镜像检查发现的确定问题，尚不能在没有串口日志的情况下断言其解释了整机无法启动。新构建需不保留配置刷写并实测。有系统访问时，可检查 `/tmp/h5000m-wifi-eeprom.log` 和 `logread -e h5000m-wifi`；若仍无网口或持续重启，需要串口日志区分 U-Boot、内核、eMMC 挂载与驱动加载阶段。

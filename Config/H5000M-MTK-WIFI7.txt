@@ -5,7 +5,7 @@
 # defconfig/low-mem-512m/mt7987-mt7992-be7200.config
 # 仅取 SDK 部分；设备选择由五个 H5000M 配置提供。
 # H5000M 校准数据：eMMC PARTLABEL=factory，offset=0，size=0x1e00。
-# BE6500 的 2+3 DAT 配置须结合本机 EEPROM 做实机验证。
+# 空 factory 使用原厂 BE5040 iPAiLNA 备用 EEPROM；有效本机 EEPROM 优先。
 
 CONFIG_PACKAGE_kmod-mediatek_hnat=y
 CONFIG_PACKAGE_kmod-warp=y
@@ -151,17 +151,17 @@ CONFIG_MTK_WIFI7_FIRST_IF_MT7992=y
 CONFIG_MTK_WIFI7_SECOND_IF_NONE=y
 CONFIG_MTK_WIFI7_THIRD_IF_NONE=y
 CONFIG_MTK_WIFI7_MULTI_PROFILE_SUPPORT=y
-CONFIG_MTK_WIFI7_SKU_TYPE="BE6500"
+CONFIG_MTK_WIFI7_SKU_TYPE="BE5040"
 CONFIG_MTK_WIFI7_FW_LOG_TYPE="string_log"
 CONFIG_first_card=y
 CONFIG_first_card_name="MT7992"
-CONFIG_first_card_profile_path="/etc/wireless/mediatek/mt7992.6500.1.dat"
+CONFIG_first_card_profile_path="/etc/wireless/mediatek/mt7992.5040.1.dat"
 CONFIG_first_card_init_script="/lib/wifi/mtwifi.lua"
 CONFIG_first_card_init_compatible="mtwifi"
 CONFIG_first_card_EEPROM_offset="0x0"
 CONFIG_first_card_EEPROM_size="0x1e00"
 CONFIG_first_card_EEPROM_name="e2p"
-CONFIG_first_card_EEPROM_def_bin_path="/lib/firmware/e2p"
+CONFIG_first_card_EEPROM_def_bin_path="/lib/firmware/MT7991_MT7976_EEPROM_BE5040_iPAiLNA.bin"
 CONFIG_first_card_main_ifname="ra0;rai0"
 CONFIG_first_card_ext_ifname="ra;rai"
 CONFIG_first_card_wds_ifname="wds;wdsi"

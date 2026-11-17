@@ -486,6 +486,8 @@ jobs:
         # 任何一项失败都会以 ::error:: 注解并阻断构建，而不是带着缺包的固件继续。
         run: |
           cd ./wrt/
+          sudo apt-get install -y bsdextrautils
+          python3 -m unittest discover -s "$GITHUB_WORKSPACE/tests" -p 'test_wifi_eeprom.py' -v
           python3 "$GITHUB_WORKSPACE/Scripts/check_defconfig.py" \
             --config .config \
             --requested .config.requested \
@@ -709,6 +711,12 @@ jobs:
           ccache -s 2>/dev/null || true
 
           exit "$RC"
+
+      - name: Verify H5000M SDK Boot Image
+        if: env.WRT_TEST != 'true'
+        run: |
+          sudo apt-get install -y u-boot-tools
+          python3 "$GITHUB_WORKSPACE/Scripts/verify_sdk_image.py" --images "$GITHUB_WORKSPACE/wrt/bin/targets"
 
       - name: Machine Information
         run: |

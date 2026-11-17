@@ -88,12 +88,12 @@ class Checker:
             "CONFIG_WARP_VERSION": '"3_1"',
             "CONFIG_WARP_CHIPSET": '"mt7987"',
             "CONFIG_MTK_HWIFI_MT7992_RRO_MODE": "5",
-            "CONFIG_MTK_WIFI7_SKU_TYPE": '"BE6500"',
+            "CONFIG_MTK_WIFI7_SKU_TYPE": '"BE5040"',
             "CONFIG_first_card_name": '"MT7992"',
-            "CONFIG_first_card_profile_path": '"/etc/wireless/mediatek/mt7992.6500.1.dat"',
+            "CONFIG_first_card_profile_path": '"/etc/wireless/mediatek/mt7992.5040.1.dat"',
             "CONFIG_first_card_EEPROM_offset": '"0x0"',
             "CONFIG_first_card_EEPROM_size": '"0x1e00"',
-            "CONFIG_first_card_EEPROM_def_bin_path": '"/lib/firmware/e2p"',
+            "CONFIG_first_card_EEPROM_def_bin_path": '"/lib/firmware/MT7991_MT7976_EEPROM_BE5040_iPAiLNA.bin"',
         }.items():
             if self.actual.get(symbol) != expected:
                 self.errors.append(f"{symbol} 应为 {expected}，实际为 {self.actual.get(symbol, '<缺失>')}")

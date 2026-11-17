@@ -1,0 +1,46 @@
+#!/bin/sh /etc/rc.common
+# SPDX-License-Identifier: MIT
+# H5000M 的 factory 可能为空；在 S10boot 加载无线模块前准备有效 EEPROM。
+# 只读取 factory，绝不向 eMMC、MTD 或 U-Boot 分区写入。
+START=07
+
+h5000m_valid_eeprom() {
+    [ -f "$1" ] && [ "$(wc -c < "$1")" -eq 7680 ] || return 1
+    [ "$(hexdump -v -n 2 -e '2/1 "%02x"' "$1")" = 9279 ]
+}
+
+h5000m_prepare_eeprom() {
+    local factory="$1" fallback="$2" output="$3"
+    local temporary="${output}.new.$$" source
+
+    if [ -n "$factory" ] && dd if="$factory" of="$temporary" bs=7680 count=1 2>/dev/null \
+       && h5000m_valid_eeprom "$temporary"; then
+        source=factory
+    else
+        rm -f "$temporary"
+        if ! h5000m_valid_eeprom "$fallback"; then
+            echo 'H5000M EEPROM: factory 与 BE5040 备用文件均无效' >&2
+            return 1
+        fi
+        cp "$fallback" "$temporary" || return 1
+        source=BE5040-fallback
+    fi
+    chmod 0644 "$temporary" && mv -f "$temporary" "$output" || {
+        rm -f "$temporary"
+        return 1
+    }
+    echo "H5000M EEPROM: $source -> $output"
+}
+
+boot() {
+    [ "$(cat /tmp/sysinfo/board_name 2>/dev/null)" = 'hiveton,h5000m' ] || return 0
+    local factory
+    factory="$(blkid -t PARTLABEL=factory -o device 2>/dev/null | head -n 1)"
+    h5000m_prepare_eeprom "$factory" \
+        /rom/lib/firmware/MT7991_MT7976_EEPROM_BE5040_iPAiLNA.bin /lib/firmware/e2p \
+        >> /tmp/h5000m-wifi-eeprom.log 2>&1 || {
+        logger -t h5000m-wifi 'EEPROM 初始化失败，请检查 /tmp/h5000m-wifi-eeprom.log'
+        return 1
+    }
+    logger -t h5000m-wifi "$(cat /tmp/h5000m-wifi-eeprom.log)"
+}

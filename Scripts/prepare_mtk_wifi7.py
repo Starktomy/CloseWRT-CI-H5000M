@@ -6,6 +6,7 @@ import argparse
 import json
 from pathlib import Path
 import re
+import shutil
 
 
 def replace_once(text, pattern, replacement):
@@ -34,6 +35,20 @@ def prepare(root, ssid, key, encryption, country, width_2g, width_5g):
         raise ValueError(f"不支持的加密方式：{encryption}")
     if encryption in ("psk2", "psk-mixed"):
         encryption += "+ccmp"
+
+    # 保留该 6.12 分支的镜像布局和内核加载地址，只明确串口控制台。
+    dts = root / "target/linux/mediatek/dts/mt7987a-hiveton-h5000m.dts"
+    text = dts.read_text()
+    if 'console=ttyS0,115200n8' not in text:
+        text = replace_once(text, r'bootargs = "earlycon=',
+                            lambda _: 'bootargs = "console=ttyS0,115200n8 earlycon=')
+        dts.write_text(text)
+
+    # files/ 在 rootfs 打包时覆盖通用 wifi_e2p。其 S07 顺序早于 S10boot/kmodloader。
+    eeprom_init = root / "files/etc/init.d/wifi_e2p"
+    eeprom_init.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(Path(__file__).resolve().parent / "files/h5000m-wifi-e2p.init", eeprom_init)
+    eeprom_init.chmod(0o755)
 
     literal = lambda value: json.dumps(value, ensure_ascii=False)
     path = root / "package/mtk/applications/mtwifi-cfg-ucode/files/lib/wifi/mtwifi.uc"
